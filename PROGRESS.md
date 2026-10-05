@@ -92,8 +92,14 @@ endpoint-dependent work (embeddings/indexes/LLM) awaiting class key.
 - Tests: `tests/test_retrieval.py` added — RRF fusion math, BM25 round-trip,
   semantic sanity (quantization → week02, gradio → week04), Candidate evidence
   payload. Full suite: **17 pass**.
+- High-level architecture diagram: `docs/architecture.html` (dark-theme SVG,
+  covers student → Gradio UI → backend (ingestion / hybrid retrieval / Q&A /
+  quiz) → local indexes + evidence → class services + .env security),
+  screenshot saved to `outputs/screenshots/architecture.png` (verified
+  full-page, no clipping/overlaps).
 - Git: commits pushed to `feat/1-ingestion`; PR #8 scope updated to
-  "ingestion + local retrieval core".
+  "ingestion + local retrieval core". Team rule: all development now on
+  branch `sneha` (master via PRs only).
 
 **Verified by:** `python -m pytest -q` (17 passed), direct BM25 query output
 (above), vision checks of renders.
