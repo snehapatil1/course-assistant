@@ -11,6 +11,7 @@ __pycache__/
 outputs/pages/
 outputs/indexes/
 outputs/raw/
+outputs/tmp_convert/
 
 # --- course corpus (class materials are not re-distributed from this repo;
 #     see data/materials/README.md for the setup step) ---

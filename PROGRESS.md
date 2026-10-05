@@ -58,5 +58,43 @@ what remains unchecked.
 **Not yet done:** PPTX slide images (LibreOffice still installing), any
 endpoint-dependent work (embeddings/indexes/LLM) awaiting class key.
 
-## Step 3 — (next) — Indexes: BM25 + text/visual embeddings
+---
+
+## Step 3 — Local retrieval core: BM25 + hybrid fusion (2026-10-05)
+
+**Done:**
+- LibreOffice installed (`brew install --cask libreoffice`) — **all 173 page
+  images now rendered**: 142 slides + 31 PDF pages (110 dpi). Re-run is
+  idempotent (0 new renders on 2nd run). Slide renders visually verified
+  (week05 p3 / week02 p15: tidy, readable, CU Boulder branding intact).
+- `src/indexes.py` — BM25 index built via bm25s (192 chunks; save + load
+  round-trip). Hit the bm25s 0.3.12 API drift: `load()` is a classmethod
+  returning the instance, needs `load_scores(num_docs=...)` to restore
+  retrieval state, and no longer round-trips a corpus attribute (kept our own
+  `corpus_meta.json`). `bm25_search` maps integer doc-rows back to chunks.
+- `src/embeddings.py` — class endpoint clients for text embedding, visual
+  embedding (two payload styles, `VISUAL_INPUT_STYLE`), multimodal rerank,
+  and chat; exponential-backoff retries; no secrets printed. Not yet exercised
+  (awaiting key).
+- `src/retrieve.py` — hybrid retrieval: BM25 top-k + text-vector top-k +
+  visual-vector top-k → RRF fusion (`compute_rrf`) → optional class reranker →
+  top-k `Candidate`s carrying full evidence (doc, page, excerpt, image path).
+- `src/indexes.py --bm25-only` builds the keyword index with zero endpoints.
+- **Keyword search verified end-to-end** (temperature-free, deterministic):
+  - "What is quantization?" → week02 slides 15/16 (exact) + quiz1_answer_key p1
+  - "context window and RAG" → week05 slides 2/5 + week02 p8
+  - "gradio launch share" → week04 slide 7
+  - "what is fine-tuning?" → quiz1 p2 (Q10 region) + week05 p13
+- Tests: `tests/test_retrieval.py` added — RRF fusion math, BM25 round-trip,
+  semantic sanity (quantization → week02, gradio → week04), Candidate evidence
+  payload. Full suite: **17 pass**.
+- Git: commits pushed to `feat/1-ingestion`; PR #8 scope updated to
+  "ingestion + local retrieval core".
+
+**Verified by:** `python -m pytest -q` (17 passed), direct BM25 query output
+(above), vision checks of renders.
+**Not yet done:** text/visual vector indexes, reranker, Q&A, quiz, UI — all
+depend on the class endpoint key (user/team supplying connection details).
+
+## Step 4 — (next) — Vector indexes + hybrid retrieval end-to-end (key)
 

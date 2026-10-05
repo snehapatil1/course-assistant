@@ -37,14 +37,13 @@ def find_soffice() -> str | None:
 
 
 def render_pdf(path: Path, prefix: str) -> list[str]:
-    """Render every page of a PDF to PNG. Returns rendered page_ids."""
+    """Render every page of a PDF to PNG. Returns newly-created page_ids."""
     page_ids: list[str] = []
     with pymupdf.open(str(path)) as doc:
         for i in range(len(doc)):
             page_id = f"{prefix}__p{i + 1:04d}"
             out = PAGES_DIR / f"{page_id}.png"
             if out.exists():
-                page_ids.append(page_id)
                 continue
             pix = doc[i].get_pixmap(dpi=RENDER_DPI)
             pix.save(str(out))
@@ -85,6 +84,9 @@ def render_all() -> dict[str, int]:
         src = MATERIALS_DIR / units[0]["source_file"]
         if not src.exists():
             continue
+        missing = [u for u in units if not (PAGES_DIR / (u["page_id"] + ".png")).exists()]
+        if not missing:
+            continue  # fully rendered already
         if units[0]["kind"] == "page":
             new_ids = render_pdf(src, doc_id)
             counts["page"] += len(new_ids)
