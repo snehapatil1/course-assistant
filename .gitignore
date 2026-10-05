@@ -1,0 +1,21 @@
+# --- secrets ---
+.env
+
+# --- python ---
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# --- bulky build artifacts (regenerable; results/ and findings/ stay tracked) ---
+outputs/pages/
+outputs/indexes/
+outputs/raw/
+
+# --- course corpus (class materials are not re-distributed from this repo;
+#     see data/materials/README.md for the setup step) ---
+data/materials/
+
+# --- os / editor ---
+.DS_Store
+*.log
