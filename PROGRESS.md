@@ -4,6 +4,10 @@ Every step is logged here as it is built, tested, and verified. Findings and
 limitations are honest: what was actually executed (with saved artifacts) vs.
 what remains unchecked.
 
+**Git workflow:** `master` is the integrated line; all development happens on
+branch `sneha` (personal working branch) and lands on `master` via pull
+requests. Never commit directly to `master`.
+
 ---
 
 ## Step 1 — Discovery & project setup (2026-10-05)
