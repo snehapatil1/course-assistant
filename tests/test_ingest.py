@@ -1,124 +1,67 @@
-"""Repeatable checks for the ingestion pipeline (no API key required).
-
-Run with:  .venv/bin/python -m pytest
-"""
+"""Repeatable checks for parsing + chunking (fixture documents, keyless)."""
 from __future__ import annotations
 
-import json
-from pathlib import Path
+from dataclasses import asdict
 
 import pytest
 
-from src.ingest import _split_long_text, build_chunks
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-
-EXPECTED_DOCS = {
-    "hermes_configuration_guide",
-    "hermes_installation_guide",
-    "quiz1",
-    "quiz1_answer_key",
-    "syllabus",
-    "week02_llm_fundamentals",
-    "week03_prompt_engineering",
-    "week04_serving_debugging",
-    "week05_context_rag",
-    "week06_multimodal",
-}
+from src.ingest import (_split_long_text, build_chunks, build_page_records,
+                        extract_pdf, extract_pptx, sha256_file)
 
 
-@pytest.fixture(scope="module")
-def manifest() -> list[dict]:
-    return json.loads((PROJECT_ROOT / "outputs" / "manifest.json").read_text(encoding="utf-8"))
+def test_extract_pdf_counts_and_text(pdf_file):
+    records = extract_pdf(pdf_file)
+    assert len(records) == 2
+    assert records[1]["kind"] == "page"
+    assert "retrieval augmented" in records[1]["text"].lower()
 
 
-@pytest.fixture(scope="module")
-def chunks() -> list[dict]:
-    return json.loads((PROJECT_ROOT / "outputs" / "chunks.json").read_text(encoding="utf-8"))
+def test_extract_pptx_counts_and_text(pptx_file):
+    records = extract_pptx(pptx_file)
+    assert len(records) == 3
+    assert all(r["kind"] == "slide" for r in records)
+    assert "Quantization" in " ".join(r["text"] for r in records)
 
 
-def test_manifest_covers_all_materials(manifest):
-    docs = {p["doc"] for p in manifest}
-    assert docs == EXPECTED_DOCS, f"missing/extra docs: {docs ^ EXPECTED_DOCS}"
+def test_build_page_records_metadata(pdf_file):
+    h = sha256_file(pdf_file)
+    pages = build_page_records(pdf_file, "my_doc", "my_lecture_notes.pdf", h)
+    assert len(pages) == 2
+    p0 = pages[0]
+    assert p0["page_id"] == "my_doc__p0001"
+    assert p0["doc_id"] == "my_doc"
+    assert p0["doc_title"] == "my_lecture_notes.pdf"
+    assert p0["file_hash"] == h
+    assert p0["image_path"] == "outputs/pages/my_doc__p0001.png"
+    assert p0["kind"] == "page" and p0["page_no"] == 1
 
 
-def test_every_unit_has_metadata(manifest):
-    for p in manifest:
-        assert p["page_id"]
-        assert p["kind"] in ("slide", "page")
-        assert isinstance(p["page_no"], int) and p["page_no"] >= 1
-        assert p["doc"] and p["source_file"]
-        assert p["image_path"].endswith(".png")
+def test_unsupported_format_rejected(tmp_path):
+    bad = tmp_path / "notes.txt"
+    bad.write_text("hello")
+    with pytest.raises(ValueError, match="unsupported format"):
+        build_page_records(bad, "bad", "notes.txt", "x" * 64)
 
 
-def test_page_ids_unique(manifest):
-    ids = [p["page_id"] for p in manifest]
-    assert len(ids) == len(set(ids))
+def test_slides_are_atomic_chunks(pptx_file):
+    pages = build_page_records(pptx_file, "deck", "my_deck.pptx", "h" * 64)
+    chunks = [asdict(c) for c in build_chunks(pages)]
+    assert len(chunks) == 3  # one chunk per slide, no splitting
+    assert all(c["kind"] == "slide" for c in chunks)
+    assert all(c["chunk_id"].endswith("__c0001") for c in chunks)
 
 
-def test_slides_have_reasonable_text(manifest):
-    slides = [p for p in manifest if p["kind"] == "slide"]
-    assert len(slides) >= 100
-    # title/slide 1 of week 2 should carry the course name
-    w2 = next(p for p in manifest if p["doc"] == "week02_llm_fundamentals" and p["page_no"] == 1)
-    assert "MBAX 6418" in w2["text"] or "LLM Fundamentals" in w2["text"]
-
-
-def test_chunks_have_all_fields(chunks):
-    for c in chunks:
-        assert c["chunk_id"]
-        assert c["text"].strip()
-        assert c["doc"] in EXPECTED_DOCS
-        assert isinstance(c["page_no"], int)
-        assert c["image_path"].endswith(".png")
-
-
-def test_chunk_ids_unique(chunks):
-    ids = [c["chunk_id"] for c in chunks]
-    assert len(ids) == len(set(ids))
-
-
-def test_slide_is_one_atomic_chunk(chunks, manifest):
-    slide_pages = {p["page_id"] for p in manifest if p["kind"] == "slide"}
-    for c in chunks:
-        if c["kind"] == "slide":
-            assert c["chunk_of"] in slide_pages
-    slide_chunk_pages = {c["chunk_of"] for c in chunks if c["kind"] == "slide"}
-    assert len(slide_chunk_pages) <= len(slide_pages)
-
-
-def test_long_pdf_page_split_preserves_text(chunks):
-    # syllabus page 5 is the longest page; its chunks must jointly cover it
-    syllabus_chunks = sorted(
-        (c for c in chunks if c["doc"] == "syllabus" and c["page_no"] == 5),
-        key=lambda c: c["chunk_id"],
-    )
-    assert len(syllabus_chunks) > 1, "expect the long syllabus page to be split"
-    joined = "".join(c["text"] for c in syllabus_chunks)
-    # overlap may duplicate a little text, but nothing may be lost entirely
-    assert len(joined) >= 2000
-
-
-def test_split_long_text_basics():
-    text = "word " * 2000
+def test_long_pdf_page_splits_with_overlap():
+    text = ("word " * 3000).strip()
     parts = _split_long_text(text, 1100, 120)
     assert len(parts) > 1
     assert all(len(p) <= 1100 * 1.5 for p in parts)
-    assert "".join(parts).replace("word " * 120, "")  # overlap present, not destructive
+    joined = "".join(parts)
+    assert "word " * 1100 in joined  # nothing dropped, overlap allowed
 
 
-def test_quiz1_answer_key_ground_truth(manifest):
-    key_text = "\n".join(
-        p["text"].lower()
-        for p in manifest
-        if p["doc"] == "quiz1_answer_key"
-        if (p["text"] or "").strip()
-    )
-    for needle in ("quantization", "few-shot", "embeddings"):
-        assert needle in key_text, f"missing {needle!r} in answer key"
-
-
-def test_empty_text_unit_is_intentional(manifest):
-    empties = [p for p in manifest if not (p["text"] or p["notes"]).strip()]
-    # exactly one: an image-only page of the Hermes configuration guide
-    assert [p["page_id"] for p in empties] == ["hermes_configuration_guide__p0009"]
+def test_short_pdf_page_single_chunk(pdf_file):
+    pages = build_page_records(pdf_file, "notes", "my_lecture_notes.pdf", "h" * 64)
+    chunks = [asdict(c) for c in build_chunks(pages)]
+    assert len(chunks) == 2  # both pages short -> one chunk each
+    assert all(c["chunk_id"].endswith("__c0001") for c in chunks)

@@ -1,0 +1,52 @@
+{
+  "run": "2026-10-07 live E2E with class endpoints (temp 0, seed 123)",
+  "endpoints": {
+    "chat": "dobolyi.com:9001/v1",
+    "text_embed": "dobolyi.com:9002/v1 (nvidia/Nemotron-3-Embed-1B-BF16, 2048-dim)",
+    "visual_embed": "dobolyi.com:9003/v1 (Qwen/Qwen3-VL-Embedding-2B, 2048-dim)",
+    "rerank": "dobolyi.com:9004/v1 (Qwen/Qwen3-VL-Reranker-2B)"
+  },
+  "library": {
+    "documents": 4,
+    "units": 103,
+    "images_rendered": 103,
+    "text_vectors": 103,
+    "visual_vectors": 103
+  },
+  "qa_quantization": {
+    "question": "What is quantization and why does it matter?",
+    "answer": "Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster. It matters because it helps reduce hardware requirements and improve inference performance. For example, reducing a model from 16-bit precision to 4-bits can significantly decrease its size (e.g., from ~61GB to ~17GB) without significant accuracy degradation.",
+    "valid": true,
+    "validation_errors": [],
+    "sources": [
+      {"doc": "week02 deck", "page_no": 15, "excerpt_prefix": "Quantization is a process for scaling and rounding model parameters to make mode..."},
+      {"doc": "week02 deck", "page_no": 16, "excerpt_prefix": "Various quantization formats exist to help reduce hardware requirements and impr..."},
+      {"doc": "week02 deck", "page_no": 21, "excerpt_prefix": "Quantized models offer an efficiency/accuracy tradeoff"}
+    ],
+    "retrieved_slides_shown": [15, 16, 8, 10, 18]
+  },
+  "qa_diagram_description": {
+    "question": "Describe what the diagram on the slide shows: the retrieval augmented generation pipeline",
+    "answer": "The diagram illustrates a \"Hybrid RAG Pipeline with Reranking.\" A Question splits into two retrieval paths (Keyword Search; Embedding Model + Vector Search), which converge into Candidate Chunks, then pass through a Reranker...",
+    "valid": true,
+    "note": "the model read the actual slide image (vision path with 192px JPEG evidence images)"
+  },
+  "quiz": {
+    "quiz_id": "f2574a7b2fca",
+    "n": 3,
+    "topic": "quantization",
+    "source_material": "week02 deck (42 slides)",
+    "grade_sample": "2/3 with one deliberately wrong answer",
+    "key_sha_stable": true,
+    "explanations_cite_chunk": true
+  },
+  "visual_embed_constraint": {
+    "issue": "visual embed endpoint context limit 8192 tokens; budget tracks encoded image size",
+    "probe": "110-dpi PNG slide (~860KB) rejected HTTP 400; JPEG q85 max-side 192px (~5-8KB) accepted; dense slides need adaptive ladder (160/128/96px + q80/75/70)",
+    "fix": "adaptive resize ladder + one-image requests"
+  },
+  "limitations": {
+    "rerank_text_only": "reranker endpoint schema accepts plain strings only (no image objects) - text-only reranking verified",
+    "visual_embed_resolution": "embedder sees <=192px JPEG; rendering for display stays full-res 110dpi PNG"
+  }
+}

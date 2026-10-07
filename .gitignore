@@ -13,9 +13,8 @@ outputs/indexes/
 outputs/raw/
 outputs/tmp_convert/
 
-# --- course corpus (class materials are not re-distributed from this repo;
-#     see data/materials/README.md for the setup step) ---
-data/materials/
+# --- user library (students' uploaded course materials; managed by the app) ---
+data/library/
 
 # --- os / editor ---
 .DS_Store

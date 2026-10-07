@@ -12,7 +12,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-MATERIALS_DIR = PROJECT_ROOT / "data" / "materials"
+LIBRARY_DIR = PROJECT_ROOT / "data" / "library"  # app-managed: students' uploaded materials
 OUTPUTS_DIR = PROJECT_ROOT / "outputs"
 PAGES_DIR = OUTPUTS_DIR / "pages"
 TEXT_DIR = OUTPUTS_DIR / "text"
@@ -66,20 +66,25 @@ TOP_K_FUSED = int(env("TOP_K_FUSED", "12"))
 TOP_K_FINAL = int(env("TOP_K_FINAL", "5"))
 RRF_K = int(env("RRF_K", "60"))
 
-_REQUIRED = {
-    "chat": (CHAT_BASE_URL, CHAT_API_KEY, CHAT_MODEL),
-    "text_embed": (TEXT_EMBED_BASE_URL, TEXT_EMBED_API_KEY, TEXT_EMBED_MODEL),
-    "visual_embed": (VISUAL_EMBED_BASE_URL, VISUAL_EMBED_API_KEY, VISUAL_EMBED_MODEL),
-    "rerank": (RERANK_BASE_URL, RERANK_API_KEY, RERANK_MODEL),
-    "parse": (PARSE_BASE_URL, PARSE_API_KEY, PARSE_MODEL),
+_KIND_ATTRS = {
+    "chat": ("CHAT_BASE_URL", "CHAT_API_KEY", "CHAT_MODEL"),
+    "text_embed": ("TEXT_EMBED_BASE_URL", "TEXT_EMBED_API_KEY", "TEXT_EMBED_MODEL"),
+    "visual_embed": ("VISUAL_EMBED_BASE_URL", "VISUAL_EMBED_API_KEY", "VISUAL_EMBED_MODEL"),
+    "rerank": ("RERANK_BASE_URL", "RERANK_API_KEY", "RERANK_MODEL"),
+    "parse": ("PARSE_BASE_URL", "PARSE_API_KEY", "PARSE_MODEL"),
 }
 
 
 def require_endpoint(kind: str) -> None:
-    """Raise a clear error unless the endpoint is configured with a real key."""
-    if kind not in _REQUIRED:
+    """Raise a clear error unless the endpoint is configured with a real key.
+
+    Reads the current module state live, so tests can toggle endpoints off by
+    patching the attributes (e.g. ``config.CHAT_API_KEY = ""``).
+    """
+    attrs = _KIND_ATTRS.get(kind)
+    if attrs is None:
         raise ValueError(f"unknown endpoint kind: {kind!r}")
-    url, key, model = _REQUIRED[kind]
+    url, key, model = (globals().get(a, "") for a in attrs)
     missing = [name for name, v in (("URL", url), ("key", key), ("model", model)) if not v]
     if missing:
         raise RuntimeError(

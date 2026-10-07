@@ -108,3 +108,124 @@ depend on the class endpoint key (user/team supplying connection details).
 
 ## Step 4 — (next) — Vector indexes + hybrid retrieval end-to-end (key)
 
+---
+
+## Step 5 — Generic, app-managed library (made the app format-agnostic) (2026-10-05)
+
+Per the revised guidelines, the app no longer knows about any specific course
+file: students upload their own materials and everything (Q&A, quizzes)
+operates on that library.
+
+**Done:**
+- `src/library.py` (new) — app-managed document library:
+  - `add_document`: SHA-256 **dedupe** (same file twice -> no duplicate),
+    copy into `data/library/`, parse, render page/slide images, rebuild
+    manifest + chunks + BM25, sync ChromaDB text/visual indexes when the
+    class endpoints are configured (`vector indexes skipped` message
+    otherwise).
+  - `remove_document`: purges the stored file, text, images, chunk rows, BM25
+    corpus, and vector rows — later answers never rely on removed content.
+  - `list_documents` / `rebuild_all` / CLI (`python -m src.library
+    add|remove|list|rebuild`).
+- `src/ingest.py` — rewritten generic: `build_page_records(path, doc_id,
+  title, hash)` per document; no fixed corpus, no `data/materials`.
+- `src/render.py` — generic `render_doc` by extension (PDF direct;
+  PPTX via LibreOffice headless); renders everything in the manifest.
+- `src/retrieve.py` — graceful degradation: BM25 always; text/visual vector
+  legs + reranker only when endpoints configured (`endpoint_ready`).
+- `src/qa.py` (new) — vision prompt from evidence (text + slide images),
+  structured `{answer, sources}` parsing, schema + **support validation**
+  (fabricated doc/page/excerpt rejected; "not in materials" is an honest
+  answer).
+- `src/quiz.py` (new) — MCQs from selected uploaded material; fixed key
+  server-side (`primary_key` never leaves the server; `to_client_view`
+  strips key/explain/raw; `key_sha` stability), grading + explanations.
+- `src/app.py` (new) — Gradio app: **Materials** tab (upload/remove/dedupe
+  status; works with zero configuration), **Q&A** tab (material/topic
+  filters, rerank + vision toggles, answer + validated sources + original
+  slide images with document/slide captions), **Quiz** tab (material/topic/
+  count, radios, grade vs stored key, solutions revealed only after
+  grading). Unconfigured endpoints produce an honest status panel.
+- Fixed two real edge cases found by the new tests: bm25s crashes on an
+  empty corpus (removing the last document) -> empty-library guards in
+  build/load/search; bm25s returns zero-score noise rows when a query
+  matches nothing -> filtered out.
+- Removed ALL references to the earlier uploaded corpus: `data/materials/`
+  deleted, `EXPECTED_DOCS`/week*/quiz1/syllabus tests replaced with
+  synthetic fixture documents (see `tests/conftest.py`), `outputs/`
+  reset to an empty library (manifest/chunks = []). Verified with grep:
+  zero hits for week0|quiz1|syllabus|MATERIALS_DIR in src/ and tests/.
+- Docs: `data/library/README.md` (supported formats, LibreOffice conversion
+  steps, manual PPTX→PDF workaround, render verification spot-check),
+  README.md quick-start + credentials section.
+- Tests: **36 pass** (parsing, chunking, library add/dedupe/remove/purge,
+  BM25 follows add+remove, RRF, candidate evidence, endpoint-ready guards,
+  Q&A parsing + fabricated-source rejection, quiz key stability/grading/
+  solution-hiding).
+- Smoke check: `build_app()` constructs the Gradio Blocks without error.
+
+**Verified by:** `python -m pytest -q` (36 passed), CLI round trip
+(add -> list -> remove -> empty), grep for stale references (0 hits),
+`build_app()` smoke test.
+**Not yet done:** real-endpoint paths (vectors, vision Q&A, quiz
+generation) still await the class key; UI screenshots pending a live run.
+
+## Step 6 — (next) — Class endpoints (key) -> full end-to-end + UI screenshots
+
+---
+
+## Step 6 — LIVE: class endpoints configured, full end-to-end verified (2026-10-07)
+
+**Configured (local `.env` only — gitignored, never on GitHub):**
+chat `dobolyi.com:9001/v1` (cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit), text embed
+`9002/v1` (Nemotron-3-Embed-1B-BF16), visual embed `9003/v1`
+(Qwen3-VL-Embedding-2B), reranker `9004/v1` (Qwen3-VL-Reranker-2B). Probed
+each port's `/v1/models` and payload schemas before wiring.
+
+**Done:**
+- Library built with the app's generic pipeline: 4 user documents (weeks 2/3/5
+  decks + syllabus PDF; week03 came in via an earlier partial add) = 103
+  page units, 103 rendered images, 103 text vectors + 103 visual vectors in
+  ChromaDB, BM25 over 103 chunks.
+- Probed service quirks and fixed them in code:
+  - visual embed endpoint rejects inputs over its 8192-token context limit;
+    the budget tracks the ENCODED image size (110-dpi PNG slide ~860KB fails;
+    JPEG q85 ≤192px ~5-8KB fits; dense slides up to 9.7KB still fail) ->
+    adaptive resize ladder (192/160/128/96px, q85->70) + one image per
+    request + correct JPEG mime in data URIs.
+  - reranker accepts `documents` as plain strings only (no image objects) ->
+    text-only reranking, `relevance_score` field.
+  - reasoning chat model intermittently returns empty completions for quiz
+    generation -> retry with max_tokens=8192; chat default raised to 2048.
+- Verified live (temperature 0, results in `outputs/findings/e2e_live.json`,
+  `e2e_quiz.json`):
+  - Hybrid retrieval: "What is quantization?" -> week02 slides 15/16 first
+    (rerank scores 0.70/0.44); diagram query -> week05 RAG slides 18/9/10
+    (visual leg working).
+  - Vision Q&A: answered quantization with 3 validated sources (doc+page+
+    excerpt); described the RAG pipeline diagram FROM the slide image with
+    valid output.
+  - Quiz: 3 MCQs generated from week02 with chunk citations, fixed key,
+    grading 2/3 on a deliberately wrong answer.
+  - UI E2E via browser: asked the question in the Gradio app, got answer +
+    "✓ structured output is valid" + sources + slide image gallery with
+    document/slide captions; screenshot saved
+    (`outputs/screenshots/qa_answered.png`).
+- Tests: suite stays hermetic (conftest forces endpoints off; endpoint-ready
+  logic now reads live module state) — **37 pass**.
+- Committed on `sneha` (26b5980, 880126d/4c4515d); `.env` never staged
+  (verified in `git status`).
+
+**Verified by:** curl probes of all four ports (200 + models confirmed), live
+embedding/chat calls, E2E results saved under `outputs/findings/`, browser UI
+run with screenshot, `python -m pytest -q` (37 passed).
+**Not yet done / limitations (honest):**
+- Reranking is text-only (endpoint schema; image objects rejected).
+- Visual embeddings operate on ≤192px JPEGs (endpoint budget); display
+  renders stay full-res.
+- The required **design comparison** (rerank on/off, or hybrid vs single
+  index) and README findings writeup are the next planned step.
+- The running app (proc 6bdc3e609481) serves at http://127.0.0.1:7860.
+
+## Step 7 — (next) — Design comparison + README findings/limitations
+

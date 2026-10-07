@@ -1,8 +1,11 @@
-"""Hybrid retrieval: keyword (BM25) + text-vector + visual-vector, fused with
-RRF, optionally reranked by the class multimodal reranker.
+"""Hybrid retrieval for the course assistant.
 
-Separate indexes stay separate until query time: text hits are chunk-level,
-visual hits are page-level and resolved back to their chunks via ``chunk_of``.
+Generic: retrieves over whatever the student has uploaded. Keyword (BM25)
+runs locally with zero endpoints; text-vector and visual-vector legs run via
+ChromaDB only when the class embedding endpoints are configured in ``.env``.
+Rankings are fused with RRF and (optionally) reranked by the class
+multimodal reranker. Every candidate carries doc + page/slide + excerpt +
+original image path.
 """
 from __future__ import annotations
 
@@ -10,9 +13,18 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from src import config
 from src.config import (PROJECT_ROOT, RRF_K, TOP_K_FINAL, TOP_K_FUSED, TOP_K_KEYWORD,
                         TOP_K_TEXT, TOP_K_VISUAL)
 from src.indexes import bm25_search, get_chroma, get_text_collection, get_visual_collection
+
+
+def endpoint_ready(kind: str) -> bool:
+    try:
+        config.require_endpoint(kind)
+        return True
+    except RuntimeError:
+        return False
 
 
 @dataclass
@@ -56,11 +68,6 @@ def compute_rrf(rankings: list[list[str]], k: int = 60) -> dict[str, float]:
     return scores
 
 
-def apply_doc_filter(chunks: list[dict], query: str, docs: list[str]) -> bool:
-    """Naive early filter used by retrieval for material selection."""
-    return query is not None  # placeholder; real filtering happens on metadata
-
-
 # --------------------------------------------------------------------------- #
 # Retrieval
 # --------------------------------------------------------------------------- #
@@ -73,35 +80,52 @@ def retrieve(
     k_fused: int = TOP_K_FUSED,
     k_final: int = TOP_K_FINAL,
     use_rerank: bool = True,
+    bm25_dir: Path | None = None,
 ) -> list[Candidate]:
-    """Hybrid retrieve -> fuse -> optional rerank -> final candidates."""
-    batches = {"keyword": [], "text": [], "visual": []}
+    """Hybrid retrieve -> fuse -> optional rerank -> final candidates.
 
-    bm25, corpus = _load_bm25()
-    keyword_hits = bm25_search(query, bm25, corpus, k=k_keyword)
+    Keyword-only when the class embedding endpoints are not configured
+    (the app still answers, honestly, with what it has).
+    """
+    from src.indexes import load_bm25
+
+    index, corpus = load_bm25(bm25_dir or PROJECT_ROOT / "outputs" / "indexes" / "bm25")
+    keyword_hits = bm25_search(query, index, corpus, k=k_keyword)
     if docs:
         keyword_hits = [h for h in keyword_hits if h["doc"] in docs]
-    batches["keyword"] = [h["chunk_id"] for h in keyword_hits]
+    batches = {"keyword": [h["chunk_id"] for h in keyword_hits]}
+    if not corpus:
+        return []  # empty library: nothing to retrieve
 
-    client = get_chroma()
-    txt_col = get_text_collection(client)
-    vis_col = get_visual_collection(client)
+    text_ready = endpoint_ready("text_embed")
+    visual_ready = endpoint_ready("visual_embed")
 
-    text_hits = txt_col.query(query_texts=[query], n_results=k_text) if not nested_docs(docs) else txt_col.query(
-        query_texts=[query], n_results=k_text, where={"doc": {"$in": docs}} if docs else None
-    )
-    batches["text"] = text_hits["ids"][0]
+    # embed the query with OUR embedder and query both collections with
+    # vectors - query_texts would use Chroma's default 384-dim function and
+    # crash against our 2048-dim vectors
+    q_emb = None
+    if text_ready or visual_ready:
+        from src.embeddings import embed_query
 
-    # visual: embed the query (and a query+text aug for better recall)
-    from src.embeddings import embed_query
+        q_emb = embed_query(query)
 
-    q_emb = embed_query(query)
-    vis_spec = {"query_embeddings": [q_emb.tolist()], "n_results": k_visual}
-    if docs:
-        vis_spec["where"] = {"doc": {"$in": docs}}
-    vis_hits = vis_col.query(**vis_spec)
-    page_ids = vis_hits["ids"][0]
-    batches["visual"] = _page_ids_to_chunk_ids(page_ids)
+    if text_ready:
+        assert q_emb is not None  # embedded above when text_ready
+        txt_col = get_text_collection(get_chroma())
+        where = {"doc": {"$in": docs}} if docs else None
+        text_hits = txt_col.query(
+            query_embeddings=[q_emb.tolist()], n_results=k_text, where=where
+        )
+        batches["text"] = text_hits["ids"][0]
+
+    if visual_ready:
+        assert q_emb is not None  # embedded above when visual_ready
+        vis_col = get_visual_collection(get_chroma())
+        spec: dict = {"query_embeddings": [q_emb.tolist()], "n_results": k_visual}
+        if docs:
+            spec["where"] = {"doc": {"$in": docs}}
+        vis_hits = vis_col.query(**spec)
+        batches["visual"] = _page_ids_to_chunk_ids(vis_hits["ids"][0])
 
     fused = compute_rrf(list(batches.values()), k=RRF_K)
     ordered = sorted(fused.items(), key=lambda kv: kv[1], reverse=True)[:k_fused]
@@ -121,7 +145,7 @@ def retrieve(
         if cid in chunks_by_id
     ]
 
-    if use_rerank:
+    if use_rerank and endpoint_ready("rerank"):
         from src.embeddings import rerank
 
         candidates = rerank(query, [c.__dict__ for c in candidates])
@@ -129,12 +153,6 @@ def retrieve(
         candidates.sort(key=lambda c: c.rerank_score, reverse=True)
 
     return candidates[:k_final]
-
-
-def _load_bm25():
-    from src.indexes import load_bm25
-
-    return load_bm25()
 
 
 def _page_ids_to_chunk_ids(page_ids: list[str]) -> list[str]:
@@ -146,7 +164,3 @@ def _page_ids_to_chunk_ids(page_ids: list[str]) -> list[str]:
         if c.get("chunk_of") in page_set:
             out.append(c["chunk_id"])
     return out
-
-
-def nested_docs(docs: list[str] | None) -> bool:
-    return bool(docs)

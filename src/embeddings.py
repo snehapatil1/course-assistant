@@ -19,7 +19,7 @@ import numpy as np
 
 from src import config
 
-_INPUT_STYLES = ("auto", "openai", "images")
+_INPUT_STYLES = ("openai", "images")  # reserved: payload shapes per endpoint probe
 
 
 def _auth_headers(api_key: str) -> dict[str, str]:
@@ -63,53 +63,98 @@ def embed_query(text: str) -> np.ndarray:
 # --------------------------------------------------------------------------- #
 # Visual embeddings (image -> vector)
 # --------------------------------------------------------------------------- #
-def _blob_to_embedding_blob(path: str | Path) -> str:
+def _blob_to_embedding_blob(path: str | Path, max_side: int | None = None,
+                            quality: int = 85) -> str:
+    """base64 of the image, downscaled/re-encoded for the embedder's budget.
+
+    The class visual-embedding endpoint rejects inputs above its context
+    limit (8192 tokens), and the budget tracks the encoded image size: dense
+    slides at JPEG q85/192px can still overflow (~9.7KB max observed). The
+    caller ``embed_images`` falls back to smaller/lower-quality encodings;
+    see ``VISUAL_MAX_SIDE`` / ``VISUAL_IMAGE_FORMAT`` overrides.
+    """
     raw = Path(path).read_bytes()
+    if max_side is None:
+        max_side = int(os.environ.get("VISUAL_MAX_SIDE", "192") or "192")
+    fmt = (os.environ.get("VISUAL_IMAGE_FORMAT", "JPEG") or "JPEG").upper()
+    if max_side > 0:
+        try:
+            import io
+
+            from PIL import Image
+
+            img = Image.open(io.BytesIO(raw)).convert("RGB")
+            if max(img.size) > max_side:
+                img.thumbnail((max_side, max_side))
+                buf = io.BytesIO()
+                img.save(buf, format=fmt, quality=quality, optimize=True)
+                raw = buf.getvalue()
+        except Exception:
+            pass  # fall back to the original bytes
     return base64.b64encode(raw).decode("ascii")
+
+
+def _image_data_uri(path: str | Path, max_side: int | None = None,
+                    quality: int = 85) -> str:
+    """Data URI for the visual embedder; the mime must match the encoding."""
+    fmt = (os.environ.get("VISUAL_IMAGE_FORMAT", "JPEG") or "JPEG").upper()
+    return (f"data:image/{fmt.lower()};base64,"
+            f"{_blob_to_embedding_blob(path, max_side=max_side, quality=quality)}")
 
 
 def embed_images(paths: list[str]) -> np.ndarray:
     model = config.VISUAL_EMBED_MODEL
     base_url = config.VISUAL_EMBED_BASE_URL
     url = f"{base_url.rstrip('/')}/embeddings"
-    style = (os.environ.get("VISUAL_INPUT_STYLE", "auto") or "auto").lower()
-    if style not in _INPUT_STYLES:
-        style = "auto"
-    blobs = [_blob_to_embedding_blob(p) for p in paths]
+    headers = _auth_headers(config.VISUAL_EMBED_API_KEY)
 
-    attempts = [("openai", {"model": model, "input": [f"data:image/png;base64,{b}" for b in blobs]}),
-                ("images", {"model": model, "images": blobs})] if style == "auto" else [
-                (style, {"model": model,
-                         **({"input": [f"data:image/png;base64,{b}" for b in blobs]}
-                            if style == "openai" else {"images": blobs})})]
+    vectors: list[np.ndarray] = []
+    for path in paths:
+        uri = _embed_one_image(url, headers, model, path)
+        data = _retryable_post(url, headers, {"model": model, "input": [uri]})
+        rows = sorted(data["data"], key=lambda r: r["index"])
+        vectors.append(np.asarray(rows[0]["embedding"], dtype=np.float32))
+    return np.stack(vectors)
 
-    for name, payload in attempts:
-        try:
-            data = _retryable_post(url, _auth_headers(config.VISUAL_EMBED_API_KEY), payload)
-            rows = sorted(data["data"], key=lambda r: r["index"])
-            return np.asarray([r["embedding"] for r in rows], dtype=np.float32)
-        except RuntimeError:
-            if style != "auto":
-                raise
-    raise RuntimeError("visual embedding endpoint rejected both payload styles; "
-                       "set VISUAL_INPUT_STYLE in .env after probing the endpoint")
+
+def _embed_one_image(url: str, headers: dict, model: str, path: str) -> str:
+    """Find an encoding of ``path`` that fits the endpoint's token budget.
+
+    Dense slides can overflow at the default size (HTTP 400); the ladder
+    shrinks the side and drops quality until the request succeeds.
+    """
+    import httpx as _httpx
+
+    for side, quality in ((192, 85), (160, 80), (128, 75), (96, 70)):
+        uri = _image_data_uri(path, max_side=side, quality=quality)
+        resp = _httpx.post(url, headers=headers,
+                           json={"model": model, "input": [uri]}, timeout=120)
+        if resp.status_code == 200:
+            return uri
+        if resp.status_code != 400:  # not a size rejection; surface the real error
+            raise RuntimeError(f"visual embedding {url} -> HTTP {resp.status_code}")
+    raise RuntimeError(
+        f"visual embedding endpoint still rejected {path} at the smallest encoding"
+    )
 
 
 # --------------------------------------------------------------------------- #
 # Multimodal reranking (query + candidate text/images -> scores)
 # --------------------------------------------------------------------------- #
 def rerank(query: str, candidates: list[dict]) -> list[dict]:
-    """Return candidates with a reranker score added. ``candidates`` items
-    carry ``text`` and optionally ``image_path``."""
+    """Return candidates with a reranker score added.
+
+    Class endpoint schema (probed): POST /v1/rerank with ``documents`` as a
+    list of plain strings; scores come back as ``relevance_score`` per index.
+    """
     url = f"{config.RERANK_BASE_URL.rstrip('/')}/rerank"
-    docs = [
-        {"text": c["text"], **({"image": c["image_path"]} if c.get("image_path") else {})}
-        for c in candidates
-    ]
+    docs = [c["text"][:1500] for c in candidates]
     payload = {"model": config.RERANK_MODEL, "query": query, "documents": docs}
     data = _retryable_post(url, _auth_headers(config.RERANK_API_KEY), payload)
     for item in data.get("results", []):
-        candidates[item["index"]]["rerank_score"] = float(item["score"])
+        candidates[item["index"]]["rerank_score"] = float(
+            item.get("relevance_score", item.get("score", 0.0))
+        )
     return candidates
 
 
@@ -117,7 +162,7 @@ def rerank(query: str, candidates: list[dict]) -> list[dict]:
 # Vision-capable chat (structured text)
 # --------------------------------------------------------------------------- #
 def chat(messages: list[dict], temperature: float | None = None,
-         max_tokens: int = 1536) -> str:
+         max_tokens: int = 4096) -> str:
     """One chat completion; returns message content. Handles reasoning models
     that may return empty content when max_tokens is small."""
     url = f"{config.CHAT_BASE_URL.rstrip('/')}/chat/completions"
