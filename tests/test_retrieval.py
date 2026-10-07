@@ -30,9 +30,23 @@ def test_candidate_evidence_payload():
 
 
 def test_endpoint_ready_false_without_key():
-    # no .env on fresh clones: every endpoint must report "not ready"
+    # conftest switches every endpoint off; all must report "not ready"
     for kind in ("chat", "text_embed", "visual_embed", "rerank"):
         assert endpoint_ready(kind) is False
+
+
+def test_endpoint_ready_reflects_live_config(monkeypatch):
+    from src import config
+
+    # dummy values -> still not ready
+    monkeypatch.setattr(config, "CHAT_BASE_URL", "http://example.invalid:9001/v1")
+    monkeypatch.setattr(config, "CHAT_API_KEY", "sk-dummy-placeholder")
+    monkeypatch.setattr(config, "CHAT_MODEL", "example/model")
+    assert endpoint_ready("chat") is False
+
+    # a real-looking key -> ready
+    monkeypatch.setattr(config, "CHAT_API_KEY", "sk-3f9a2c7e11b44d0088aa")
+    assert endpoint_ready("chat") is True
 
 
 def test_retrieve_keyword_only_and_filtering(pdf_file, pptx_file, tmp_path):

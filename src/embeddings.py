@@ -99,17 +99,19 @@ def embed_images(paths: list[str]) -> np.ndarray:
 # Multimodal reranking (query + candidate text/images -> scores)
 # --------------------------------------------------------------------------- #
 def rerank(query: str, candidates: list[dict]) -> list[dict]:
-    """Return candidates with a reranker score added. ``candidates`` items
-    carry ``text`` and optionally ``image_path``."""
+    """Return candidates with a reranker score added.
+
+    Class endpoint schema (probed): POST /v1/rerank with ``documents`` as a
+    list of plain strings; scores come back as ``relevance_score`` per index.
+    """
     url = f"{config.RERANK_BASE_URL.rstrip('/')}/rerank"
-    docs = [
-        {"text": c["text"], **({"image": c["image_path"]} if c.get("image_path") else {})}
-        for c in candidates
-    ]
+    docs = [c["text"][:1500] for c in candidates]
     payload = {"model": config.RERANK_MODEL, "query": query, "documents": docs}
     data = _retryable_post(url, _auth_headers(config.RERANK_API_KEY), payload)
     for item in data.get("results", []):
-        candidates[item["index"]]["rerank_score"] = float(item["score"])
+        candidates[item["index"]]["rerank_score"] = float(
+            item.get("relevance_score", item.get("score", 0.0))
+        )
     return candidates
 
 

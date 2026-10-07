@@ -84,11 +84,18 @@ def _sync_vector_indexes(chunks: list[dict], pages: list[dict], out_dir: Path) -
     import numpy as np
 
     from src.embeddings import embed_images, embed_texts
-    from src.indexes import build_vector_indexes, get_chroma, get_text_collection, get_visual_collection
+    from src.indexes import (build_vector_indexes, get_chroma,
+                             get_text_collection, get_visual_collection)
 
     client = get_chroma()
-    get_text_collection(client).delete(where={})
-    get_visual_collection(client).delete(where={})
+    # full rebuild: drop + recreate both collections (delete(where={}) is invalid)
+    for name in ("text_chunks", "visual_pages"):
+        try:
+            client.delete_collection(name)
+        except Exception:
+            pass  # collection did not exist yet
+    get_text_collection(client)
+    get_visual_collection(client)
 
     embed_text = lambda texts: embed_texts(texts).astype(np.float32)
     embed_image = lambda paths: embed_images(paths).astype(np.float32)
