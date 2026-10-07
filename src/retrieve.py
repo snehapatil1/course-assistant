@@ -94,22 +94,33 @@ def retrieve(
     if docs:
         keyword_hits = [h for h in keyword_hits if h["doc"] in docs]
     batches = {"keyword": [h["chunk_id"] for h in keyword_hits]}
+    if not corpus:
+        return []  # empty library: nothing to retrieve
 
     text_ready = endpoint_ready("text_embed")
     visual_ready = endpoint_ready("visual_embed")
 
+    # embed the query with OUR embedder and query both collections with
+    # vectors - query_texts would use Chroma's default 384-dim function and
+    # crash against our 2048-dim vectors
+    q_emb = None
+    if text_ready or visual_ready:
+        from src.embeddings import embed_query
+
+        q_emb = embed_query(query)
+
     if text_ready:
-        client = get_chroma()
-        txt_col = get_text_collection(client)
+        assert q_emb is not None  # embedded above when text_ready
+        txt_col = get_text_collection(get_chroma())
         where = {"doc": {"$in": docs}} if docs else None
-        text_hits = txt_col.query(query_texts=[query], n_results=k_text, where=where)
+        text_hits = txt_col.query(
+            query_embeddings=[q_emb.tolist()], n_results=k_text, where=where
+        )
         batches["text"] = text_hits["ids"][0]
 
     if visual_ready:
-        from src.embeddings import embed_query
-
+        assert q_emb is not None  # embedded above when visual_ready
         vis_col = get_visual_collection(get_chroma())
-        q_emb = embed_query(query)
         spec: dict = {"query_embeddings": [q_emb.tolist()], "n_results": k_visual}
         if docs:
             spec["where"] = {"doc": {"$in": docs}}

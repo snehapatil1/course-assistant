@@ -85,14 +85,29 @@ def answer_qa(question: str, doc_id: str, topic: str, rerank: bool,
         return _endpoint_status_md(), [], gr.update()
 
     query = f"{topic}: {question}" if topic.strip() else question
-    candidates = retrieve.retrieve(
-        query, docs=[doc_id] if doc_id else None, use_rerank=rerank
-    )
+    try:
+        candidates = retrieve.retrieve(
+            query, docs=[doc_id] if doc_id else None, use_rerank=rerank
+        )
+    except Exception as exc:  # noqa: BLE001 - surface honest, readable errors
+        import traceback
+
+        traceback.print_exc()
+        return (f"Something went wrong while searching the library: {exc} "
+                f"(details in outputs/app.log). If the library is empty, add "
+                f"materials in the Materials tab first."), [], gr.update()
     if not candidates:
         return ("No matching material found in the library for this question. "
                 "Try a different question or add more documents in the Materials tab."), [], gr.update()
 
-    result = qa.answer_question(question, candidates, include_images=images_on)
+    try:
+        result = qa.answer_question(question, candidates, include_images=images_on)
+    except Exception as exc:  # noqa: BLE001 - surface honest, readable errors
+        import traceback
+
+        traceback.print_exc()
+        return (f"Something went wrong while generating the answer: {exc} "
+                f"(details in outputs/app.log)."), [], gr.update()
 
     md = ["## Answer", result["answer"] or "_(empty response)_", ""]
     md.append("**Validation:** " + (
@@ -118,13 +133,15 @@ def answer_qa(question: str, doc_id: str, topic: str, rerank: bool,
 # --------------------------------------------------------------------------- #
 # Quiz tab
 # --------------------------------------------------------------------------- #
-def generate_quiz_ui(material: str, topic: str, n_questions: int):
+def generate_quiz_ui(material: str, topic: str, n_questions: int,
+                     progress: gr.Progress = gr.Progress()):
     radios = [gr.update(visible=False, choices=[]) for _ in range(MAX_QUESTIONS)]
     if not retrieve.endpoint_ready("chat"):
         return _endpoint_status_md(), *radios, ""
     if n_questions < 1 or n_questions > MAX_QUESTIONS:
         return f"Choose between 1 and {MAX_QUESTIONS} questions.", *radios, ""
 
+    progress(0.1, desc="Selecting chunks from your materials…")
     chunks = json.loads((config.PROJECT_ROOT / "outputs" / "chunks.json").read_text(encoding="utf-8"))
     if material:
         chunks = [c for c in chunks if c["doc"] == material]
@@ -134,10 +151,22 @@ def generate_quiz_ui(material: str, topic: str, n_questions: int):
 
     doc_title = next((d["title"] for d in library.list_documents() if d["doc_id"] == material),
                      material or "All materials")
-    qz = quiz.generate_quiz(doc_title, chunks, n_questions, topic=topic)
+
+    progress(0.3, desc="Calling the class LLM to write the questions… "
+                       "(this can take a minute or two)")
+
+    try:
+        qz = quiz.generate_quiz(doc_title, chunks, n_questions, topic=topic)
+    except Exception as exc:  # noqa: BLE001 - surface honest, readable errors
+        import traceback
+
+        traceback.print_exc()
+        return (f"Something went wrong while generating the quiz: {exc} "
+                f"(details in outputs/app.log)."), *radios, ""
     _QUIZ_STORE[qz["quiz_id"]] = qz
     view = quiz.to_client_view(qz)
 
+    progress(1.0, desc="Quiz ready")
     md = [f"### Quiz {view['quiz_id']} — {view['material_title']}"]
     if view["topic"]:
         md.append(f"*topic: {view['topic']}*")
