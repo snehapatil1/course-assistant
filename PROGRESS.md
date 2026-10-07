@@ -172,3 +172,60 @@ generation) still await the class key; UI screenshots pending a live run.
 
 ## Step 6 — (next) — Class endpoints (key) -> full end-to-end + UI screenshots
 
+---
+
+## Step 6 — LIVE: class endpoints configured, full end-to-end verified (2026-10-07)
+
+**Configured (local `.env` only — gitignored, never on GitHub):**
+chat `dobolyi.com:9001/v1` (cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit), text embed
+`9002/v1` (Nemotron-3-Embed-1B-BF16), visual embed `9003/v1`
+(Qwen3-VL-Embedding-2B), reranker `9004/v1` (Qwen3-VL-Reranker-2B). Probed
+each port's `/v1/models` and payload schemas before wiring.
+
+**Done:**
+- Library built with the app's generic pipeline: 4 user documents (weeks 2/3/5
+  decks + syllabus PDF; week03 came in via an earlier partial add) = 103
+  page units, 103 rendered images, 103 text vectors + 103 visual vectors in
+  ChromaDB, BM25 over 103 chunks.
+- Probed service quirks and fixed them in code:
+  - visual embed endpoint rejects inputs over its 8192-token context limit;
+    the budget tracks the ENCODED image size (110-dpi PNG slide ~860KB fails;
+    JPEG q85 ≤192px ~5-8KB fits; dense slides up to 9.7KB still fail) ->
+    adaptive resize ladder (192/160/128/96px, q85->70) + one image per
+    request + correct JPEG mime in data URIs.
+  - reranker accepts `documents` as plain strings only (no image objects) ->
+    text-only reranking, `relevance_score` field.
+  - reasoning chat model intermittently returns empty completions for quiz
+    generation -> retry with max_tokens=8192; chat default raised to 2048.
+- Verified live (temperature 0, results in `outputs/findings/e2e_live.json`,
+  `e2e_quiz.json`):
+  - Hybrid retrieval: "What is quantization?" -> week02 slides 15/16 first
+    (rerank scores 0.70/0.44); diagram query -> week05 RAG slides 18/9/10
+    (visual leg working).
+  - Vision Q&A: answered quantization with 3 validated sources (doc+page+
+    excerpt); described the RAG pipeline diagram FROM the slide image with
+    valid output.
+  - Quiz: 3 MCQs generated from week02 with chunk citations, fixed key,
+    grading 2/3 on a deliberately wrong answer.
+  - UI E2E via browser: asked the question in the Gradio app, got answer +
+    "✓ structured output is valid" + sources + slide image gallery with
+    document/slide captions; screenshot saved
+    (`outputs/screenshots/qa_answered.png`).
+- Tests: suite stays hermetic (conftest forces endpoints off; endpoint-ready
+  logic now reads live module state) — **37 pass**.
+- Committed on `sneha` (26b5980, 880126d/4c4515d); `.env` never staged
+  (verified in `git status`).
+
+**Verified by:** curl probes of all four ports (200 + models confirmed), live
+embedding/chat calls, E2E results saved under `outputs/findings/`, browser UI
+run with screenshot, `python -m pytest -q` (37 passed).
+**Not yet done / limitations (honest):**
+- Reranking is text-only (endpoint schema; image objects rejected).
+- Visual embeddings operate on ≤192px JPEGs (endpoint budget); display
+  renders stay full-res.
+- The required **design comparison** (rerank on/off, or hybrid vs single
+  index) and README findings writeup are the next planned step.
+- The running app (proc 6bdc3e609481) serves at http://127.0.0.1:7860.
+
+## Step 7 — (next) — Design comparison + README findings/limitations
+
