@@ -1,0 +1,43 @@
+{
+  "quiz": {
+    "quiz_id": "f2574a7b2fca",
+    "n": 3,
+    "grade": [
+      2,
+      3
+    ],
+    "key_sha": "5a2a891c5b7cbdd6568d870dbe3abcaebf97092da4f441983b664db9615b6e34",
+    "questions": [
+      {
+        "id": 0,
+        "question": "Which of the following best describes closed-weight Large Language Models (LLMs)?",
+        "options": [
+          "They are free to download and can be run locally for maximum privacy.",
+          "They are higher performing frontier models that typically involve variable costs or credit allowances.",
+          "They are exclusively open-source and require manual API configuration for cloud deployment.",
+          "They guarantee zero copyright infringement regardless of training data sources."
+        ]
+      },
+      {
+        "id": 1,
+        "question": "What does a model's context length or context window primarily provide?",
+        "options": [
+          "The total number of parameters used to train the model",
+          "The model's 'working memory' for accessing text while generating subsequent tokens",
+          "The maximum number of API requests allowed per month",
+          "The speed at which the model processes benchmark evaluations"
+        ]
+      },
+      {
+        "id": 2,
+        "question": "How does increasing context length typically affect a model's performance?",
+        "options": [
+          "Model accuracy and performance degrade as context length increases",
+          "Model performance improves linearly with every additional token added",
+          "Context length has no measurable impact on model accuracy or speed",
+          "Models automatically expand their context window without any performance tradeoffs"
+        ]
+      }
+    ]
+  }
+}

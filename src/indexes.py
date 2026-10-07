@@ -169,7 +169,7 @@ def build_vector_indexes(
     v_metas = [
         {
             "page_id": pid,
-            "doc": next(p2["doc"] for p2 in pages if p2["page_id"] == pid),
+            "doc": next(p2["doc_id"] for p2 in pages if p2["page_id"] == pid),
             "image_path": next(p2["image_path"] for p2 in pages if p2["page_id"] == pid),
         }
         for pid in v_ids

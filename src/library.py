@@ -99,7 +99,10 @@ def _sync_vector_indexes(chunks: list[dict], pages: list[dict], out_dir: Path) -
 
     embed_text = lambda texts: embed_texts(texts).astype(np.float32)
     embed_image = lambda paths: embed_images(paths).astype(np.float32)
-    counts = build_vector_indexes(chunks, pages, embed_text, embed_image)
+    # one image per request: the visual endpoint's context budget fits ~5-8KB
+    # JPEGs; batches of larger payloads get rejected with HTTP 400
+    counts = build_vector_indexes(chunks, pages, embed_text, embed_image,
+                                  text_batch_size=64, image_batch_size=1)
     return {"status": "ok", **counts}
 
 

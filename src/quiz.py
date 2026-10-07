@@ -96,7 +96,18 @@ def generate_quiz(material_title: str, chunks: list[dict], n: int,
     """Generate a quiz from the selected chunks. The key stays server-side."""
     if chat_fn is None:
         from src.embeddings import chat as chat_fn
-    raw = chat_fn(_build_quiz_messages(material_title, chunks, n))
+    messages = _build_quiz_messages(material_title, chunks, n)
+    raw = chat_fn(messages)
+    if not raw.strip():
+        # reasoning models can swallow the budget and return nothing; retry
+        # once with a much larger allowance before giving up
+        try:
+            raw = chat_fn(messages, max_tokens=8192)
+        except TypeError:
+            raw = ""
+    if not raw.strip():
+        raise ValueError("quiz model returned an empty response; try fewer "
+                         "questions or a shorter material selection")
     obj = parse_quiz_response(raw)
     chunk_ids = {c["chunk_id"] for c in chunks}
     valid, errors = validate_quiz(obj, n, chunk_ids)
