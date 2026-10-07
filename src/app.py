@@ -18,6 +18,13 @@ activate when the class endpoints are configured in ``.env`` (run
 from __future__ import annotations
 
 import json
+import base64
+from html import escape
+from pathlib import Path
+import os
+import sys
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
+from src.dashboard import Source
 
 import gradio as gr
 
@@ -142,7 +149,8 @@ def generate_quiz_ui(material: str, topic: str, n_questions: int,
         return f"Choose between 1 and {MAX_QUESTIONS} questions.", *radios, ""
 
     progress(0.1, desc="Selecting chunks from your materials…")
-    chunks = json.loads((config.PROJECT_ROOT / "outputs" / "chunks.json").read_text(encoding="utf-8"))
+    chunks_path = config.PROJECT_ROOT / "outputs" / "chunks.json"
+    chunks = json.loads(chunks_path.read_text(encoding="utf-8")) if chunks_path.exists() else []
     if material:
         chunks = [c for c in chunks if c["doc"] == material]
     if not chunks:
@@ -212,61 +220,183 @@ def grade_quiz(quiz_id: str, *radio_values):
 # --------------------------------------------------------------------------- #
 # App
 # --------------------------------------------------------------------------- #
+ROOT = Path(__file__).resolve().parents[1]
+CSS = """
+.gradio-container {max-width:1240px!important; margin:auto!important;}
+.course-header {display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-color-primary);padding:18px 0 24px;margin-bottom:14px;gap:16px;}
+.course-header h1 {font-size:34px;font-weight:600;margin:5px 0;color:var(--body-text-color);line-height:1.2;}
+.eyebrow {font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--body-text-color-subdued);}
+.course-header p {margin:8px 0 0;color:var(--body-text-color-subdued);font-size:15px;}
+.pill {border:1px solid var(--border-color-primary);background:var(--background-fill-secondary);padding:9px 14px;border-radius:24px;font-size:13px;white-space:nowrap;}
+.overview {font-size:14px;color:var(--body-text-color-subdued);margin:4px 0 22px;}
+.overview strong {color:var(--body-text-color);}
+.workspace {padding-top:20px!important;gap:28px!important;}
+.sidebar {background:var(--background-fill-secondary)!important;border:1px solid var(--border-color-primary)!important;padding:20px!important;border-radius:12px!important;}
+.panel-title {font-size:21px!important;color:var(--body-text-color)!important;}
+.answer-box,.evidence-empty {background:var(--block-background-fill);border:1px solid var(--border-color-primary);border-radius:12px;padding:24px;color:var(--body-text-color-subdued);min-height:115px;}
+.answer-box {white-space:pre-wrap;line-height:1.7;color:var(--body-text-color);}
+.empty-heading {font-size:19px;color:var(--body-text-color);margin-bottom:8px;font-weight:600;}
+.source-card {border:1px solid var(--border-color-primary);border-radius:12px;background:var(--block-background-fill);padding:22px;margin:14px 0;}
+.source-card h3 {margin:0 0 6px;font-size:18px;color:var(--body-text-color);}
+.source-location {font-size:13px;color:var(--body-text-color-subdued);margin-bottom:14px;}
+.source-excerpt {white-space:pre-wrap;line-height:1.65;background:var(--background-fill-secondary);padding:16px;border-radius:7px;}
+.source-card img {max-width:100%;max-height:720px;object-fit:contain;display:block;margin:16px auto;}
+.hint {color:var(--body-text-color-subdued);font-size:13px;line-height:1.6;}
+button {min-height:44px!important;}
+footer {display:none!important;}
+@media(max-width:650px) {.course-header {align-items:flex-start;flex-direction:column;}.course-header h1{font-size:28px;}.workspace{gap:16px!important;}}
+"""
+# Embed only this trusted decorative asset. No directory is exposed by Gradio.
+_mountain = base64.b64encode((ROOT / 'src/assets/rocky-mountains.jpg').read_bytes()).decode('ascii')
+CSS += ':root {--ca-mountain-photo:url("data:image/jpeg;base64,' + _mountain + '");}'
+CSS += (ROOT / 'src/dashboard.css').read_text(encoding='utf-8')
+THEME_JS = """(mode) => {
+    let saved = null;
+    try { saved = localStorage.getItem('course-assistant-theme'); } catch (_) {}
+    const selected = mode || (saved === 'Dark' ? 'Dark' : 'Light');
+    document.documentElement.classList.toggle('dark', selected === 'Dark');
+    document.body.classList.toggle('dark', selected === 'Dark');
+    document.documentElement.dataset.courseTheme = selected.toLowerCase();
+    try { localStorage.setItem('course-assistant-theme', selected); } catch (_) {}
+    return selected;
+}"""
+EMPTY_ANSWER = '<div class="answer-box"><div class="empty-heading">Start with a question</div>Choose your materials and ask about a concept, a reading, or a course requirement.</div>'
+EMPTY_SOURCES = '<div class="evidence-empty"><div class="empty-heading">Evidence, not guesswork</div>Supporting passages and original page or slide images will appear here, separately from the answer.</div>'
+
+
+def text_html(text: str) -> str:
+    return f'<div class="answer-box">{escape(text)}</div>' if text else EMPTY_ANSWER
+
+
+def source_html(sources: list[Source]) -> str:
+    if not sources:
+        return EMPTY_SOURCES
+    cards = []
+    for s in sources:
+        image = '<p class="hint">Original image unavailable. The excerpt above is from the course material.</p>'
+        if s.image:
+            try:
+                data = base64.b64encode(Path(s.image).read_bytes()).decode('ascii')
+                mime = 'image/png' if Path(s.image).suffix.lower() == '.png' else 'image/jpeg'
+                image = f'<img src="data:{mime};base64,{data}" alt="Original source: {escape(s.title)} — {escape(s.location)}">'
+            except OSError:
+                pass
+        cards.append(f'<article class="source-card"><h3>{escape(s.title)}</h3><div class="source-location">{escape(s.location)}</div><div class="source-excerpt">{escape(s.excerpt)}</div>{image}</article>')
+    return ''.join(cards)
+
+
+def answer_dashboard(question, doc_id, topic, rerank, images_on):
+    """Adapt the master answer callback to separate answer/evidence cards."""
+    text, images, _ = answer_qa(question or '', doc_id or '', topic or '', rerank, images_on)
+    answer, separator, sources = text.partition('\n\n## Sources')
+    sources = sources.removesuffix('\n\n## Retrieved slide images').strip()
+    return answer, sources if separator else 'Supporting passages appear here after a grounded answer.', images
+
+
+def library_overview():
+    docs = library.list_documents()
+    return '<div class="overview"><strong>{}</strong> materials &nbsp; / &nbsp; <strong>{}</strong> pages &amp; slides &nbsp; / &nbsp; <strong>{}</strong> original images</div>'.format(len(docs), sum(d['units'] for d in docs), sum(d['images'] for d in docs))
+
+
+def refresh_library_ui():
+    return (*[gr.update(choices=_doc_choices(), value='') for _ in range(3)], library_overview())
+
+
+def upload_dashboard(files):
+    message, _ = on_upload(files)
+    return message, *refresh_library_ui()
+
+
+def remove_dashboard(doc_id):
+    message, _ = on_remove(doc_id, None)
+    return message, *refresh_library_ui()
+
+
 def build_app() -> gr.Blocks:
-    with gr.Blocks(title="Course Assistant") as demo:
-        gr.Markdown("# Course Assistant\n"
-                    "Answers questions and generates practice quizzes from **your** uploaded course materials.")
-
-        with gr.Tab("Materials"):
-            with gr.Row():
-                upload = gr.Files(label="Upload PDF or PPTX (same file twice is a no-op)",
-                                  file_types=[".pdf", ".pptx"], file_count="multiple")
-            status = gr.Textbox(label="Status", lines=4)
-            with gr.Row():
-                doc_dropdown = gr.Dropdown(choices=_doc_choices(), label="Documents in library",
-                                           interactive=True, scale=3)
-                remove_btn = gr.Button("Remove selected document", scale=1)
-            gr.Markdown("**Supported formats:** PDF (text layer) and PPTX. PPTX slides are converted "
-                        "to PDF with LibreOffice (`soffice`) and rendered as images; if LibreOffice is "
-                        "missing, export the deck to PDF manually and upload that. Removing a document "
-                        "deletes its text, images, and index entries.")
-            upload.change(on_upload, inputs=[upload], outputs=[status, doc_dropdown])
-            remove_btn.click(on_remove, inputs=[doc_dropdown, upload], outputs=[status, doc_dropdown])
-
-        with gr.Tab("Q&A"):
-            with gr.Row():
-                qa_material = gr.Dropdown(choices=_doc_choices(), label="Material filter", scale=2)
-                qa_topic = gr.Textbox(label="Topic filter (optional)", placeholder="e.g. quantization", scale=2)
-                qa_rerank = gr.Checkbox(label="Use reranker", value=True)
-                qa_images = gr.Checkbox(label="Send slide images to the model", value=True)
-            qa_question = gr.Textbox(label="Your question", lines=2,
-                                     placeholder="e.g. What does the diagram on slide 12 show?")
-            qa_btn = gr.Button("Answer")
-            qa_answer = gr.Markdown()
-            qa_gallery = gr.Gallery(label="Original slide/page images (document + slide number)",
-                                    columns=2, height="auto")
-            qa_btn.click(answer_qa,
-                         inputs=[qa_question, qa_material, qa_topic, qa_rerank, qa_images],
-                         outputs=[qa_answer, qa_gallery, qa_material])
-
-        with gr.Tab("Quiz"):
-            with gr.Row():
-                quiz_material = gr.Dropdown(choices=_doc_choices(), label="Material (choose one)", scale=2)
-                quiz_topic = gr.Textbox(label="Topic (optional)", scale=2)
-                quiz_n = gr.Slider(1, MAX_QUESTIONS, value=3, step=1, label="Number of questions", scale=1)
-            quiz_btn = gr.Button("Generate quiz from my materials")
-            quiz_view = gr.Markdown()
-            quiz_radios = [gr.Radio(label=f"Q{i + 1}", visible=False) for i in range(MAX_QUESTIONS)]
-            quiz_id_box = gr.Textbox(label="Quiz id", visible=False)
-            grade_btn = gr.Button("Grade quiz", visible=True)
-            quiz_result = gr.Markdown()
-            quiz_btn.click(generate_quiz_ui,
-                           inputs=[quiz_material, quiz_topic, quiz_n],
-                           outputs=[quiz_view, *quiz_radios, quiz_id_box])
-            grade_btn.click(grade_quiz, inputs=[quiz_id_box, *quiz_radios], outputs=[quiz_result])
-
+    with gr.Blocks(title='Course Assistant', analytics_enabled=False) as demo:
+        with gr.Row(elem_id='topbar'):
+            gr.HTML('<div class="brand"><span class="brand-mark" aria-hidden="true">⌁</span><div>Course Assistant<small>MBAX 6418 · STUDY WORKSPACE</small></div></div>')
+            theme_mode = gr.Radio(['Light', 'Dark'], value='Light', label='Appearance', elem_id='theme-mode', scale=0, min_width=210)
+        demo.load(fn=None, outputs=theme_mode, js=THEME_JS)
+        theme_mode.change(fn=None, inputs=theme_mode, js=THEME_JS)
+        gr.HTML('<header class="course-header"><div><div class="eyebrow">A clearer path to understanding</div><h1>Your course. In focus.</h1><p>Ask with context. Study with evidence. Practice at your pace.</p></div><span class="pill">Local workspace · Mountain v2</span></header>')
+        overview = gr.HTML(library_overview())
+        with gr.Tab('Q&A'):
+            with gr.Row(elem_classes='workspace'):
+                with gr.Column(scale=1, min_width=220, elem_classes='sidebar', elem_id='qa-filters'):
+                    gr.Markdown('### Study focus', elem_classes='panel-title')
+                    qa_material = gr.Dropdown(choices=_doc_choices(), value='', label='Course materials', interactive=True)
+                    qa_topic = gr.Textbox(label='Topic (optional)', placeholder='e.g. quantization')
+                    qa_rerank = gr.Checkbox(label='Use reranker', value=True)
+                    qa_images = gr.Checkbox(label='Send slide images to the model', value=True)
+                    gr.HTML('<div class="study-note"><span class="note-icon">↗</span><strong>A more focused question.<br>A more useful answer.</strong><p>Select a reading or topic to narrow your study session.</p></div>')
+                    with gr.Accordion('Class endpoint configuration', open=False):
+                        gr.Markdown(_endpoint_status_md())
+                        gr.Markdown('Configured means settings are present, not a network health check.', elem_classes='hint')
+                with gr.Column(scale=2, min_width=360, elem_classes='dashboard-card', elem_id='qa-workspace'):
+                    gr.Markdown('### Ask a question', elem_classes='panel-title')
+                    question = gr.Textbox(label='Your question', lines=4, placeholder='What does the diagram on slide 12 show?')
+                    with gr.Row():
+                        ask = gr.Button('Ask question', variant='primary', scale=2)
+                        clear = gr.Button('Clear', scale=1)
+                    gr.Markdown('### Answer', elem_classes='panel-title')
+                    answer = gr.Markdown('Choose your materials and ask about a concept, a reading, or a course requirement.', elem_classes='answer-box')
+                with gr.Column(scale=1, min_width=260, elem_classes='dashboard-card', elem_id='qa-evidence'):
+                    gr.Markdown('### Source evidence', elem_classes='panel-title')
+                    evidence = gr.Markdown('Supporting passages appear here after a grounded answer.', elem_classes='evidence-empty')
+                    gallery = gr.Gallery(label='Original slide/page images (document + slide number)', columns=1, height='auto')
+        with gr.Tab('Practice Quiz'):
+            with gr.Row(elem_classes='workspace'):
+                with gr.Column(scale=1, min_width=260, elem_classes='sidebar'):
+                    gr.Markdown('### Set your practice focus', elem_classes='panel-title')
+                    quiz_material = gr.Dropdown(choices=_doc_choices(), value='', label='Quiz materials', interactive=True)
+                    quiz_topic = gr.Textbox(label='Quiz topic (optional)')
+                    quiz_n = gr.Slider(1, MAX_QUESTIONS, value=3, step=1, label='Number of questions')
+                    create = gr.Button('Create practice quiz', variant='primary')
+                    gr.Markdown('Choose one answer per question. Solutions stay server-side until grading.', elem_classes='hint')
+                with gr.Column(scale=2, min_width=360, elem_classes='dashboard-card'):
+                    gr.Markdown('### Practice workspace', elem_classes='panel-title')
+                    quiz_view = gr.Markdown('A little practice goes a long way. Choose your focus, then create a quiz.')
+                    radios = [gr.Radio(label=f'Q{i + 1}', visible=False, interactive=True) for i in range(MAX_QUESTIONS)]
+                    quiz_id = gr.State('')
+                    grade = gr.Button('Grade quiz', variant='primary')
+                with gr.Column(scale=1, min_width=260, elem_classes='dashboard-card'):
+                    gr.Markdown('### Review & evidence', elem_classes='panel-title')
+                    result = gr.Markdown('Your score, explanations, and source references appear after you answer and grade your quiz.')
+        with gr.Tab('Course Materials'):
+            with gr.Row(elem_classes='workspace'):
+                with gr.Column(scale=1, min_width=260, elem_classes='sidebar'):
+                    gr.Markdown('### Add materials', elem_classes='panel-title')
+                    upload = gr.Files(label='Upload PDF or PPTX', file_types=['.pdf', '.pptx'], file_count='multiple')
+                    save = gr.Button('Save materials', variant='primary')
+                    refresh = gr.Button('Refresh library')
+                with gr.Column(scale=3, min_width=360, elem_classes='dashboard-card'):
+                    gr.Markdown('### Your course library', elem_classes='panel-title')
+                    doc_dropdown = gr.Dropdown(choices=_doc_choices(), label='Documents in library', interactive=True)
+                    remove = gr.Button('Remove selected document')
+                    status = gr.Textbox(label='Library status', lines=4, interactive=False)
+                    gr.Markdown('PDF text and PPTX are parsed, rendered and indexed by the course backend. Identical content is added only once. PPTX rendering requires LibreOffice; otherwise export to PDF first. Removing a document deletes its stored original, text, images and index entries.', elem_classes='hint')
+        gr.Markdown('Course Assistant · Mountain v2 · Check supporting evidence. Practice is not a graded assessment.', elem_classes='hint', elem_id='app-footnote')
+        qa_inputs = [question, qa_material, qa_topic, qa_rerank, qa_images]
+        ask.click(answer_dashboard, qa_inputs, [answer, evidence, gallery], api_name='ask')
+        question.submit(answer_dashboard, qa_inputs, [answer, evidence, gallery], api_name=False)
+        clear.click(lambda: ('', 'Ready for a new question.', 'Supporting passages appear here after a grounded answer.', []), outputs=[question, answer, evidence, gallery], api_name=False)
+        create.click(generate_quiz_ui, [quiz_material, quiz_topic, quiz_n], [quiz_view, *radios, quiz_id], api_name='create_quiz')
+        grade.click(grade_quiz, [quiz_id, *radios], result, api_name='grade_quiz')
+        library_outputs = [doc_dropdown, qa_material, quiz_material, overview]
+        save.click(upload_dashboard, upload, [status, *library_outputs], api_name='save_materials')
+        remove.click(remove_dashboard, doc_dropdown, [status, *library_outputs], api_name='remove_material')
+        refresh.click(refresh_library_ui, outputs=library_outputs, api_name='refresh_library')
     return demo
 
 
-if __name__ == "__main__":
-    build_app().launch()
+def main() -> None:
+    build_app().queue(default_concurrency_limit=1).launch(
+        server_name='127.0.0.1', server_port=None, share=False,
+        inbrowser='--no-browser' not in sys.argv, show_error=False,
+        head=f'<style>{CSS}</style>', theme=gr.themes.Soft(primary_hue='blue'),
+        footer_links=[], blocked_paths=[str(ROOT / '.env'), str(ROOT / '.git')])
+
+
+if __name__ == '__main__':
+    main()
