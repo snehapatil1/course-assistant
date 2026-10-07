@@ -135,6 +135,16 @@ def answer_question(question: str, candidates: list,
         from src.embeddings import chat as chat_fn
     messages = build_messages(question, candidates, include_images=include_images)
     raw = chat_fn(messages)
+    if not raw.strip():
+        # reasoning models can swallow the budget and return nothing; retry
+        # once with a much larger allowance before giving up
+        try:
+            raw = chat_fn(messages, max_tokens=8192)
+        except TypeError:
+            raw = ""
+    if not raw.strip():
+        raise ValueError("model returned an empty response; please retry the "
+                         "question (or ask a shorter one)")
     obj = parse_json_response(raw)
     valid, errors = validate_answer(obj, candidates)
     sources = obj.get("sources", []) if isinstance(obj, dict) else []

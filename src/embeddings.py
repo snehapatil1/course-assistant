@@ -162,7 +162,7 @@ def rerank(query: str, candidates: list[dict]) -> list[dict]:
 # Vision-capable chat (structured text)
 # --------------------------------------------------------------------------- #
 def chat(messages: list[dict], temperature: float | None = None,
-         max_tokens: int = 2048) -> str:
+         max_tokens: int = 4096) -> str:
     """One chat completion; returns message content. Handles reasoning models
     that may return empty content when max_tokens is small."""
     url = f"{config.CHAT_BASE_URL.rstrip('/')}/chat/completions"
