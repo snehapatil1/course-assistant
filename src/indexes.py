@@ -41,6 +41,10 @@ def build_bm25(chunks: list[dict], out_dir: Path = BM25_DIR) -> Path:
 
 
 def load_bm25(in_dir: Path = BM25_DIR) -> tuple[bm25s.BM25, list[dict]]:
+    in_dir = Path(in_dir)
+    if not (in_dir / "params.index.json").exists():
+        # empty library: no index has ever been built (valid state)
+        return bm25s.BM25(), []
     # BM25.load is a classmethod returning the loaded instance
     index = bm25s.BM25.load(str(in_dir))
     params = json.loads((in_dir / "params.index.json").read_text(encoding="utf-8"))
@@ -56,6 +60,9 @@ def bm25_search(query: str, index: bm25s.BM25, corpus: list[dict], k: int = 8) -
     (padded with -1); we map them back to chunk metadata via ``corpus``.
     """
     tokenized = bm25s.tokenize(query, stopwords="en")
+    if not corpus:
+        return []
+    k = max(1, min(k, len(corpus)))  # bm25s raises when k > num_docs
     results, scores = index.retrieve(tokenized, k=k)
     hits: list[dict] = []
     for row_idx in range(results.shape[0]):
@@ -63,11 +70,14 @@ def bm25_search(query: str, index: bm25s.BM25, corpus: list[dict], k: int = 8) -
             doc_row = int(results[row_idx, col_idx])
             if doc_row < 0:
                 continue
+            score = float(scores[row_idx, col_idx])
+            if score <= 0.0:
+                continue  # bm25s pads with zero-score noise when nothing matches
             meta = corpus[doc_row]
             hits.append(
                 {
                     "chunk_id": meta["chunk_id"],
-                    "score": float(scores[row_idx, col_idx]),
+                    "score": score,
                     **meta,
                 }
             )

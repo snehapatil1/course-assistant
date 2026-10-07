@@ -1,8 +1,8 @@
-"""Repeatable checks for retrieval internals (no API key required)."""
+"""Repeatable checks for retrieval internals (RRF, candidates, keyless mode)."""
 from __future__ import annotations
 
-from src.indexes import bm25_search, load_bm25
-from src.retrieve import compute_rrf
+from src.config import PROJECT_ROOT
+from src.retrieve import Candidate, compute_rrf, endpoint_ready, retrieve
 
 
 def test_rrf_expected_values():
@@ -11,7 +11,6 @@ def test_rrf_expected_values():
     assert abs(scores["b"] - (1 / 62 + 1 / 61)) < 1e-9
     assert scores["a"] == 1 / 61
     assert scores["d"] == 1 / 63
-    # b (two lists) must outrank a (one list)
     assert scores["b"] > scores["a"]
 
 
@@ -19,30 +18,7 @@ def test_rrf_empty_ranking():
     assert compute_rrf([[], []], k=60) == {}
 
 
-def test_bm25_index_roundtrip():
-    index, corpus = load_bm25()
-    assert len(corpus) == 192
-    assert all("chunk_id" in c and "text" in c for c in corpus[:5])
-
-
-def test_bm25_semantic_sanity():
-    """A textbook-style keyword query must hit the right week's slides."""
-    index, corpus = load_bm25()
-    hits = bm25_search("What is quantization?", index, corpus, k=3)
-    assert hits, "expected at least one hit"
-    assert hits[0]["chunk_id"].startswith("week02_llm_fundamentals")
-    assert "quantization" in hits[0]["text"].lower()
-
-
-def test_bm25_gradio_query_targets_week4():
-    index, corpus = load_bm25()
-    hits = bm25_search("gradio launch share", index, corpus, k=3)
-    assert hits[0]["doc"] == "week04_serving_debugging"
-
-
 def test_candidate_evidence_payload():
-    from src.retrieve import Candidate
-
     c = Candidate(
         chunk_id="x__p0001__c0001", doc="x", doc_title="X", kind="slide",
         page_no=1, text="hello world", image_path="outputs/pages/x__p0001.png",
@@ -51,3 +27,43 @@ def test_candidate_evidence_payload():
     assert ev["page_no"] == 1 and ev["doc"] == "x"
     assert ev["image_path"] == "outputs/pages/x__p0001.png"
     assert ev["excerpt"].startswith("hello world")
+
+
+def test_endpoint_ready_false_without_key():
+    # no .env on fresh clones: every endpoint must report "not ready"
+    for kind in ("chat", "text_embed", "visual_embed", "rerank"):
+        assert endpoint_ready(kind) is False
+
+
+def test_retrieve_keyword_only_and_filtering(pdf_file, pptx_file, tmp_path):
+    """With endpoints unconfigured, retrieval degrades to keyword search and
+    still returns structured evidence with the correct document/slide info."""
+    from src import library
+
+    lib_dir, out = tmp_path / "library", tmp_path / "out"
+    pdf_add = library.add_document(pdf_file, lib_dir, out, render=False)
+    pptx_add = library.add_document(pptx_file, lib_dir, out, render=False)
+
+    bm25_dir = out / "indexes" / "bm25"
+
+    hits = retrieve("Quantization", bm25_dir=bm25_dir)
+    assert hits
+    assert hits[0].doc == pptx_add["doc_id"]
+    assert hits[0].kind == "slide"
+
+    # material filter: restrict to the pdf doc
+    hits = retrieve("Quantization", docs=[pdf_add["doc_id"]], bm25_dir=bm25_dir)
+    assert hits == []
+
+    hits = retrieve("retrieval augmented generation", docs=[pdf_add["doc_id"]],
+                    bm25_dir=bm25_dir)
+    assert hits and hits[0].doc == pdf_add["doc_id"]
+
+
+def test_retrieve_no_match_returns_empty(pdf_file, tmp_path):
+    from src import library
+
+    lib_dir, out = tmp_path / "library", tmp_path / "out"
+    library.add_document(pdf_file, lib_dir, out, render=False)
+    hits = retrieve("zzzz nonexistent term qqqq", bm25_dir=out / "indexes" / "bm25")
+    assert hits == []

@@ -12,7 +12,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-MATERIALS_DIR = PROJECT_ROOT / "data" / "materials"
+LIBRARY_DIR = PROJECT_ROOT / "data" / "library"  # app-managed: students' uploaded materials
 OUTPUTS_DIR = PROJECT_ROOT / "outputs"
 PAGES_DIR = OUTPUTS_DIR / "pages"
 TEXT_DIR = OUTPUTS_DIR / "text"

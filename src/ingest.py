@@ -1,5 +1,9 @@
-"""Ingestion: parse PDFs and PPTX into per-page records, chunk text, and
-(in a later step) render original page/slide images for visual evidence.
+"""Ingestion: parse PDFs and PPTX into per-page records and chunks.
+
+Generic: works on any document the student uploads (PDF text layer, or PPTX
+shapes/tables/grouped shapes/speaker notes). Nothing here knows about any
+specific course file - the app-managed library (see ``src/library.py``) owns
+which documents exist.
 
 Outputs
 -------
@@ -8,17 +12,12 @@ Outputs
 * ``outputs/chunks.json`` - retrieval chunks derived from the manifest
   (a slide is one chunk; long PDF pages are split with overlap).
 
-Accepted formats
-----------------
-* PDF (text layer)
-* PPTX (shapes, tables, grouped shapes, speaker notes)
-
-No key is required for text extraction; rendering images is a separate,
-pluggable step (class parsing service or LibreOffice).
+Accepted formats: PDF, PPTX.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -29,7 +28,7 @@ import pymupdf  # PyMuPDF
 from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 
-from src.config import MATERIALS_DIR, PAGES_DIR, PROJECT_ROOT, TEXT_DIR
+from src.config import LIBRARY_DIR, PROJECT_ROOT
 
 PAGE_IMAGE_PATTERN = r"(?i)\.(pdf|pptx?)$"
 
@@ -99,48 +98,57 @@ EXTRACTORS = {".pptx": extract_pptx, ".pdf": extract_pdf}
 
 
 # --------------------------------------------------------------------------- #
-# Manifest
+# Manifest records
 # --------------------------------------------------------------------------- #
 def slugify(name: str) -> str:
     s = re.sub(r"[^A-Za-z0-9]+", "_", name).strip("_").lower()
     return s or "doc"
 
 
-def ingest_all() -> list[dict]:
-    """Parse every file in data/materials into a manifest of page records."""
-    files = sorted(MATERIALS_DIR.iterdir())
-    if not files:
-        raise FileNotFoundError(f"no materials found in {MATERIALS_DIR}")
+def sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for block in iter(lambda: fh.read(1 << 16), b""):
+            h.update(block)
+    return h.hexdigest()
 
+
+def build_page_records(path: Path, doc_id: str, title: str, file_hash: str) -> list[dict]:
+    """Parse one document into manifest page records (generic, any file)."""
+    path = Path(path)
+    extractor = EXTRACTORS.get(path.suffix.lower())
+    if extractor is None:
+        raise ValueError(f"unsupported format {path.suffix!r} (supported: pdf, pptx)")
+    records = extractor(path)
     pages: list[dict] = []
-    for f in files:
+    for rec in records:
+        page_id = f"{doc_id}__p{rec['page_no']:04d}"
+        pages.append(
+            {
+                "page_id": page_id,
+                "doc_id": doc_id,
+                "doc_title": title,
+                "source_file": path.name,
+                "file_hash": file_hash,
+                "kind": rec["kind"],
+                "page_no": rec["page_no"],
+                "text": rec["text"],
+                "notes": rec["notes"],
+                "image_path": f"outputs/pages/{page_id}.png",
+            }
+        )
+    return pages
+
+
+def ingest_library(library_dir: Path = LIBRARY_DIR) -> list[dict]:
+    """Parse every file currently in the app-managed library (generic rebuild)."""
+    pages: list[dict] = []
+    for f in sorted(Path(library_dir).iterdir()):
         if not f.is_file() or not re.search(PAGE_IMAGE_PATTERN, f.name):
-            print(f"[skip ] {f.name} (unsupported format)")
             continue
-        extractor = EXTRACTORS.get(f.suffix.lower())
-        if extractor is None:
-            print(f"[skip ] {f.name} (no extractor)")
-            continue
-        doc_id = f.stem
-        records = extractor(f)
-        for rec in records:
-            page_id = f"{doc_id}__p{rec['page_no']:04d}"
-            image_rel = f"outputs/pages/{page_id}.png"
-            pages.append(
-                {
-                    "page_id": page_id,
-                    "doc": doc_id,
-                    "doc_title": f.name,
-                    "source_file": f.name,
-                    "kind": rec["kind"],
-                    "page_no": rec["page_no"],
-                    "text": rec["text"],
-                    "notes": rec["notes"],
-                    "image_path": image_rel,
-                }
-            )
-        kind = records[-1]["kind"] if records else "?"
-        print(f"[ok   ] {f.name}: {len(records)} {'slides' if kind=='slide' else 'pages'}")
+        pages.extend(
+            build_page_records(f, f.stem, f.name, sha256_file(f))
+        )
     return pages
 
 
@@ -196,7 +204,7 @@ def build_chunks(pages: list[dict]) -> list[Chunk]:
         if not text:
             continue
         base = {
-            "doc": page["doc"],
+            "doc": page["doc_id"],
             "doc_title": page["doc_title"],
             "source_file": page["source_file"],
             "kind": page["kind"],
@@ -204,12 +212,12 @@ def build_chunks(pages: list[dict]) -> list[Chunk]:
             "image_path": page["image_path"],
         }
         if page["kind"] == "slide" or len(text) <= PDF_CHUNK_CHARS:
-            cid = f"{page['doc']}__p{page['page_no']:04d}__c0001"
+            cid = f"{page['doc_id']}__p{page['page_no']:04d}__c0001"
             chunks.append(Chunk(chunk_id=cid, text=text, chunk_of=page["page_id"], **base))
         else:
             parts = _split_long_text(text, PDF_CHUNK_CHARS, PDF_CHUNK_OVERLAP)
             for i, part in enumerate(parts, start=1):
-                cid = f"{page['doc']}__p{page['page_no']:04d}__c{i:04d}"
+                cid = f"{page['doc_id']}__p{page['page_no']:04d}__c{i:04d}"
                 chunks.append(
                     Chunk(chunk_id=cid, text=part, chunk_of=page["page_id"], **base)
                 )
@@ -226,28 +234,20 @@ def write_chunks(chunks: list[Chunk], path: Path) -> Path:
 
 
 # --------------------------------------------------------------------------- #
-# CLI
+# CLI (debug convenience: parse one or more documents)
 # --------------------------------------------------------------------------- #
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="Parse course materials into manifest + chunks.")
-    ap.add_argument("--out", type=Path, default=PROJECT_ROOT / "outputs")
+    ap = argparse.ArgumentParser(description="Parse documents into page records (prints JSON).")
+    ap.add_argument("files", nargs="+", type=Path)
     args = ap.parse_args(argv)
 
-    manifest_path = args.out / "manifest.json"
-    chunks_path = args.out / "chunks.json"
-
-    pages = ingest_all()
-    write_manifest(pages, manifest_path)
-    chunks = build_chunks(pages)
-    write_chunks(chunks, chunks_path)
-
-    n_slides = sum(1 for p in pages if p["kind"] == "slide")
-    n_pages = sum(1 for p in pages if p["kind"] == "page")
-    n_empty = sum(1 for p in pages if not (p["text"] or p["notes"]).strip())
-    print(f"\nmanifest.json: {len(pages)} units ({n_slides} slides, {n_pages} pdf pages, {n_empty} empty text)")
-    print(f"chunks.json  : {len(chunks)} chunks")
-    print(f"  -> {manifest_path}")
-    print(f"  -> {chunks_path}")
+    total_pages = 0
+    for f in args.files:
+        pages = build_page_records(f, f.stem, f.name, sha256_file(f))
+        total_pages += len(pages)
+        kind = pages[0]["kind"] if pages else "?"
+        print(f"[{f.name}] {len(pages)} {'slides' if kind == 'slide' else 'pages'}")
+    print(f"total page records: {total_pages}")
     return 0
 
 

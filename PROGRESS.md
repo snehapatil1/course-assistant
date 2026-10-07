@@ -108,3 +108,67 @@ depend on the class endpoint key (user/team supplying connection details).
 
 ## Step 4 — (next) — Vector indexes + hybrid retrieval end-to-end (key)
 
+---
+
+## Step 5 — Generic, app-managed library (made the app format-agnostic) (2026-10-05)
+
+Per the revised guidelines, the app no longer knows about any specific course
+file: students upload their own materials and everything (Q&A, quizzes)
+operates on that library.
+
+**Done:**
+- `src/library.py` (new) — app-managed document library:
+  - `add_document`: SHA-256 **dedupe** (same file twice -> no duplicate),
+    copy into `data/library/`, parse, render page/slide images, rebuild
+    manifest + chunks + BM25, sync ChromaDB text/visual indexes when the
+    class endpoints are configured (`vector indexes skipped` message
+    otherwise).
+  - `remove_document`: purges the stored file, text, images, chunk rows, BM25
+    corpus, and vector rows — later answers never rely on removed content.
+  - `list_documents` / `rebuild_all` / CLI (`python -m src.library
+    add|remove|list|rebuild`).
+- `src/ingest.py` — rewritten generic: `build_page_records(path, doc_id,
+  title, hash)` per document; no fixed corpus, no `data/materials`.
+- `src/render.py` — generic `render_doc` by extension (PDF direct;
+  PPTX via LibreOffice headless); renders everything in the manifest.
+- `src/retrieve.py` — graceful degradation: BM25 always; text/visual vector
+  legs + reranker only when endpoints configured (`endpoint_ready`).
+- `src/qa.py` (new) — vision prompt from evidence (text + slide images),
+  structured `{answer, sources}` parsing, schema + **support validation**
+  (fabricated doc/page/excerpt rejected; "not in materials" is an honest
+  answer).
+- `src/quiz.py` (new) — MCQs from selected uploaded material; fixed key
+  server-side (`primary_key` never leaves the server; `to_client_view`
+  strips key/explain/raw; `key_sha` stability), grading + explanations.
+- `src/app.py` (new) — Gradio app: **Materials** tab (upload/remove/dedupe
+  status; works with zero configuration), **Q&A** tab (material/topic
+  filters, rerank + vision toggles, answer + validated sources + original
+  slide images with document/slide captions), **Quiz** tab (material/topic/
+  count, radios, grade vs stored key, solutions revealed only after
+  grading). Unconfigured endpoints produce an honest status panel.
+- Fixed two real edge cases found by the new tests: bm25s crashes on an
+  empty corpus (removing the last document) -> empty-library guards in
+  build/load/search; bm25s returns zero-score noise rows when a query
+  matches nothing -> filtered out.
+- Removed ALL references to the earlier uploaded corpus: `data/materials/`
+  deleted, `EXPECTED_DOCS`/week*/quiz1/syllabus tests replaced with
+  synthetic fixture documents (see `tests/conftest.py`), `outputs/`
+  reset to an empty library (manifest/chunks = []). Verified with grep:
+  zero hits for week0|quiz1|syllabus|MATERIALS_DIR in src/ and tests/.
+- Docs: `data/library/README.md` (supported formats, LibreOffice conversion
+  steps, manual PPTX→PDF workaround, render verification spot-check),
+  README.md quick-start + credentials section.
+- Tests: **36 pass** (parsing, chunking, library add/dedupe/remove/purge,
+  BM25 follows add+remove, RRF, candidate evidence, endpoint-ready guards,
+  Q&A parsing + fabricated-source rejection, quiz key stability/grading/
+  solution-hiding).
+- Smoke check: `build_app()` constructs the Gradio Blocks without error.
+
+**Verified by:** `python -m pytest -q` (36 passed), CLI round trip
+(add -> list -> remove -> empty), grep for stale references (0 hits),
+`build_app()` smoke test.
+**Not yet done:** real-endpoint paths (vectors, vision Q&A, quiz
+generation) still await the class key; UI screenshots pending a live run.
+
+## Step 6 — (next) — Class endpoints (key) -> full end-to-end + UI screenshots
+
