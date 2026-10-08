@@ -44,9 +44,11 @@ def test_real_client_master_upload_dedupe_remove_and_quiz(tmp_path, monkeypatch,
     from gradio_client import Client, handle_file
     library_dir, out = tmp_path / 'library', tmp_path / 'outputs'
     add, remove, listing = app.library.add_document, app.library.remove_document, app.library.list_documents
+    inventory = app.library.list_inventory
     monkeypatch.setattr(app.library, 'add_document', lambda p: add(p, library_dir=library_dir, out_dir=out))
     monkeypatch.setattr(app.library, 'remove_document', lambda d: remove(d, library_dir=library_dir, out_dir=out))
-    monkeypatch.setattr(app.library, 'list_documents', lambda: listing(out_dir=out))
+    monkeypatch.setattr(app.library, 'list_documents', lambda out_dir=out: listing(out_dir=out_dir))
+    monkeypatch.setattr(app.library, 'list_inventory', lambda: inventory(out))
     monkeypatch.setattr(app.config, 'PROJECT_ROOT', tmp_path)
     demo = app.build_app()
     try:
@@ -57,6 +59,8 @@ def test_real_client_master_upload_dedupe_remove_and_quiz(tmp_path, monkeypatch,
         doc_id = listing(out)[0]['doc_id']
         assert all(doc_id in repr(added[i]) for i in [1, 2, 3])
         assert '<strong>1</strong> materials' in added[4]
+        assert added[5].count('<tr data-doc-id=') == 1
+        assert doc_id in client.predict(api_name='/refresh_library')[-1]
         assert 'already in the library' in client.predict([handle_file(str(pdf_file))], api_name='/save_materials')[0]
         assert (out / 'chunks.json').exists() and list((out / 'pages').glob('*.png'))
         assert 'not configured' in client.predict('Why?', doc_id, '', False, False, api_name='/ask')[0]
@@ -76,6 +80,8 @@ def test_real_client_master_upload_dedupe_remove_and_quiz(tmp_path, monkeypatch,
         assert 'Score: 1 / 1' in graded and 'PRIVATE-FIXTURE' in graded
         removed = client.predict(doc_id, api_name='/remove_material')
         assert 'purged' in removed[0]
+        assert '<tr data-doc-id=' not in removed[5]
+        assert '<tr data-doc-id=' not in client.predict(api_name='/refresh_library')[-1]
         assert listing(out) == [] and not list(library_dir.glob('*.pdf'))
         assert not list((out / 'pages').glob('*.png'))
     finally:
