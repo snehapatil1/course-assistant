@@ -229,3 +229,30 @@ run with screenshot, `python -m pytest -q` (37 passed).
 
 ## Step 7 — (next) — Design comparison + README findings/limitations
 
+---
+
+## Step 8 — Grounded QA deliverable: strict schema, source audit, eval harness (2026-10-08)
+
+Task branch `4-grounded-qa-answer-sources-as-validated-structured-output-vision-capable-no-invented-citations` (Savannah). Closed the gaps between the existing QA engine and the acceptance criteria, and added the reproducibility harness that was missing. All offline behavior verified by the suite; the live run needs `.env` (see the end of this step).
+
+**Done:**
+- `src/qa.py` — validation hardened:
+  - **Formal JSON schema** (`ANSWER_JSON_SCHEMA`, draft-07, via `jsonschema`): model payload must be exactly `{answer, sources[]}` with each source exactly `{doc, page_no, excerpt}` — unknown fields, non-integer pages, missing keys, and **empty excerpts are rejected** (previously an empty excerpt passed the support check — the "actual excerpt" requirement).
+  - **Grounded answers must cite ≥1 source**; `sources: []` on a real answer is now invalid (the "invented answer" failure mode). The honest refusal is pinned to the agreed marker `Not found in the provided materials.` (`qa.is_not_found` is whitespace/case tolerant) and must have `sources == []`.
+  - Support check retained + factored (`qa.excerpt_overlaps`): every source must pin to a retrieved candidate and its excerpt must overlap retrieved text.
+  - **Display metadata is resolved server-side** (`qa._enrich_sources`: doc_title/kind/image_path/chunk_id from the pinned candidate) — the model never supplies display fields, so the strict schema stays strict while the UI keeps its labels.
+  - **Explicit `temperature=` passthrough** on `answer_question` (eval runs at 0).
+  - **Empty-response fallback ladder made explicit + recorded**: rung 1 normal → rung 2 same messages with `max_tokens=8192` → rung 3 images stripped + larger budget → `qa.EmptyResponseError` (subclass of ValueError, carries the ladder information; UI surfaces it honestly).
+  - Vision path unchanged in spirit: `include_images=True` attaches each candidate's page/slide image (`qa.count_images` reports how many were sent, recorded per question).
+- `src/eval_qa.py` (new) — the evaluation harness the task required:
+  - Default 12-question eval set (text-grounded, multi-source, **diagram/vision**, **out-of-materials honesty probes**, thin-evidence probes), overridable via CLI (`--questions`, `--list-defaults`).
+  - Runs retrieve → vision messages → chat at **temperature 0** → strict schema + support validation; catches ladder exhaustion and retrieval errors per question (never fatal).
+  - **Per-source audit** (AC2): doc + page/slide + non-empty excerpt + pinned-to-evidence + excerpt-overlaps-evidence + page/slide screenshot availability.
+  - Writes `outputs/findings/grounded_qa_eval_<ts>.json` (+ `grounded_qa_eval_latest.json`) with per-question records, raw model output, ladder usage, `images_sent`, latency, and a summary (valid ratio, honest refusals, vision path used, ladder stats, failures).
+  - Hermetic by design: `retrieve_fn`/`chat_fn` injectable; CLI refuses cleanly (exit 2) when endpoints aren't configured.
+- `requirements.txt`: +`jsonschema>=4`.
+- Tests: `tests/test_qa.py` +17 (schema strictness, grounded-no-sources, empty-excerpt, temperature passthrough, ladder rescue/strip/exhaust, vision image parts, source enrichment); `tests/test_eval_qa.py` +10 (file output, honest refusal, no-candidates, ladder-exhausted recording, vision on/off, retrieval-error path, latest copy, CLI offline guard). Full suite: **84 passed, 4 skipped** (was 58).
+
+**Verified by:** `python -m pytest -q` (84 passed, 4 skipped), CLI smoke (`--list-defaults`; offline run exits 2 with a readable message).
+**Not yet done (honest):** the LIVE eval against the class endpoints (chat/embeddings/rerank) — `.env` with the class key is required; this machine has none. Once `.env` + course documents are in the library, run `python -m src.eval_qa` and commit the results file.
+
