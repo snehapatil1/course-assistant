@@ -17,7 +17,7 @@ hardcoded anywhere; the corpus is whatever the user adds in the app.
 
 ### Open on Windows
 
-Double-click **Start Course Assistant.bat** in the project folder. It installs required dependencies when needed and opens the default Mountain interface in your browser. Keep the launcher window open while using the app. If another copy is running, use the new browser window or the local address printed by the launcher.
+[**Start Course Assistant.bat**](Start Course Assistant.bat) — download and double-click it in the project folder. It installs required dependencies when needed and opens the default Mountain interface in your browser. Keep the launcher window open while using the app. If another copy is running, use the new browser window or the local address printed by the launcher.
 
 For detailed dashboard instructions, see [README-DASHBOARD.md](README-DASHBOARD.md).
 
