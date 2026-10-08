@@ -56,8 +56,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible {outline:3px sol
 #quiz-workspace label span,#quiz-workspace label p,#quiz-workspace label div {min-width:0!important;white-space:normal!important;overflow-wrap:anywhere!important;overflow:visible!important;display:block!important;}
 #quiz-workspace input[type=radio] {flex-shrink:0;margin-top:4px;}
 /* Gradio's radio option containers often clamp height/width — override aggressively. */
-#quiz-workspace .wrap,.dashboard-card .wrap {overflow:visible!important;white-space:normal!important;}
-#quiz-workspace .block,.dashboard-card .block {min-width:0!important;max-width:100%!important;flex:1 1 auto!important;}
+#quiz-workspace .wrap {overflow:visible!important;white-space:normal!important;}
+#quiz-workspace .block {min-width:0!important;max-width:100%!important;flex:1 1 auto!important;height:auto!important;min-height:0!important;}
 /* Radio button option labels — force wrap on all descendants */
 #quiz-workspace [class*="option"],#quiz-workspace [class*="radio"] {white-space:normal!important;overflow-wrap:anywhere!important;}
 #quiz-workspace [class*="option"] span,#quiz-workspace [class*="option"] p,#quiz-workspace [class*="option"] div,#quiz-workspace [class*="radio"] span,#quiz-workspace [class*="radio"] p,#quiz-workspace [class*="radio"] div {white-space:normal!important;overflow-wrap:anywhere!important;display:block!important;}
