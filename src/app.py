@@ -36,10 +36,20 @@ _QUIZ_STORE: dict[str, dict] = {}  # server-side only: key never leaves here
 
 def _doc_choices() -> list[tuple[str, str]]:
     docs = library.list_documents()
-    return [("All materials", "")] + [
+    return [
         (f"{d['title']} ({d['units']} pages/slides, {d['images']} imgs)", d["doc_id"])
         for d in docs
     ]
+
+
+def _inventory_choices() -> list[tuple[str, str]]:
+    return [(f"{d['title']} — {d['status']} [{d['doc_id']}]", d['doc_id'])
+            for d in library.list_inventory()]
+
+
+def _qa_quiz_choices() -> list[tuple[str, str]]:
+    return [(f"{d['title']} — {d['status']} [{d['doc_id']}]", d['doc_id'])
+            for d in library.list_inventory()]
 
 
 def _endpoint_status_md() -> str:
@@ -67,18 +77,18 @@ def on_upload(files) -> tuple[str, gr.Dropdown]:
         except ValueError as exc:
             messages.append(f"skipped {f.name}: {exc}")
     return ("\n".join(messages) if messages else "no files to add",
-            gr.Dropdown(choices=_doc_choices(), value=None))
+            gr.Dropdown(choices=_inventory_choices(), value=None))
 
 
 def on_remove(doc_id: str, files) -> tuple[str, gr.Dropdown]:
     if not doc_id:
-        return "Select a document to remove first.", gr.Dropdown(choices=_doc_choices(), value=None)
+        return "Select a document to remove first.", gr.Dropdown(choices=_inventory_choices(), value=None)
     return (library.remove_document(doc_id)["message"],
-            gr.Dropdown(choices=_doc_choices(), value=None))
+            gr.Dropdown(choices=_inventory_choices(), value=None))
 
 
 def refresh_docs() -> gr.Dropdown:
-    return gr.Dropdown(choices=_doc_choices(), value=None)
+    return gr.Dropdown(choices=_inventory_choices(), value=None)
 
 
 # --------------------------------------------------------------------------- #
@@ -94,7 +104,7 @@ def answer_qa(question: str, doc_id: str, topic: str, rerank: bool,
     query = f"{topic}: {question}" if topic.strip() else question
     try:
         candidates = retrieve.retrieve(
-            query, docs=[doc_id] if doc_id else None, use_rerank=rerank
+            query, docs=([doc_id] if isinstance(doc_id, str) else doc_id) or None, use_rerank=rerank
         )
     except Exception as exc:  # noqa: BLE001 - surface honest, readable errors
         import traceback
@@ -152,13 +162,14 @@ def generate_quiz_ui(material: str, topic: str, n_questions: int,
     chunks_path = config.PROJECT_ROOT / "outputs" / "chunks.json"
     chunks = json.loads(chunks_path.read_text(encoding="utf-8")) if chunks_path.exists() else []
     if material:
-        chunks = [c for c in chunks if c["doc"] == material]
+        selected = [material] if isinstance(material, str) else material
+        chunks = [c for c in chunks if c["doc"] in selected]
     if not chunks:
         return ("No chunks found for the selected material - add documents in the "
                 "Materials tab first."), *radios, ""
 
-    doc_title = next((d["title"] for d in library.list_documents() if d["doc_id"] == material),
-                     material or "All materials")
+    selected = ([material] if isinstance(material, str) else material) or []
+    doc_title = ", ".join(d["title"] for d in library.list_documents() if d["doc_id"] in selected) if selected else "All available materials"
 
     progress(0.3, desc="Calling the class LLM to write the questions… "
                        "(this can take a minute or two)")
@@ -178,13 +189,13 @@ def generate_quiz_ui(material: str, topic: str, n_questions: int,
     md = [f"### Quiz {view['quiz_id']} — {view['material_title']}"]
     if view["topic"]:
         md.append(f"*topic: {view['topic']}*")
-    for i, qview in enumerate(view["questions"], start=1):
-        md.append(f"**Q{i}.** {qview['question']}")
+    for i, qview in enumerate(view["questions"]):
+        md.append(f"**Q{i + 1}.** {qview['question']}")
     md.append("")
     md.append("Answer below, then press **Grade quiz**. Solutions are shown only after grading.")
 
     upd = [
-        gr.update(visible=True, choices=qview["options"], label=f"Q{i + 1}")
+        gr.update(visible=True, choices=qview["options"], label=f"Q{i + 1}. {qview['question']}")
         for i, qview in enumerate(view["questions"])
     ]
     upd += [gr.update(visible=False, choices=[]) for _ in range(MAX_QUESTIONS - len(upd))]
@@ -298,8 +309,25 @@ def library_overview():
     return '<div class="overview"><strong>{}</strong> materials &nbsp; / &nbsp; <strong>{}</strong> pages &amp; slides &nbsp; / &nbsp; <strong>{}</strong> original images</div>'.format(len(docs), sum(d['units'] for d in docs), sum(d['images'] for d in docs))
 
 
+def library_inventory_html():
+    records = library.list_inventory()
+    rows = ''.join(
+        f'<tr data-doc-id="{escape(d["doc_id"], quote=True)}"><td>{escape(d["title"])}'
+        f'<small>{escape(d["doc_id"])}</small></td><td>{d["units"]}</td>'
+        f'<td>{escape(d["status"])}</td></tr>' for d in records)
+    available = sum(d['original_available'] for d in records)
+    return (f'<p class="hint">{len(records)} inventory records · {available} originals stored locally. '
+            'Study selectors include active processed documents only. Removal uses one explicit target and is guarded when historical metadata exists. Index-only records '
+            'are not ready materials; re-upload the original to process them. Different document IDs '
+            'are shown separately, even when titles refer to the same lecture.</p>'
+            '<table><thead><tr><th>Material / document ID</th><th>Pages / slides</th><th>Status</th>'
+            f'</tr></thead><tbody>{rows}</tbody></table>')
+
+
 def refresh_library_ui():
-    return (*[gr.update(choices=_doc_choices(), value='') for _ in range(3)], library_overview())
+    return (gr.update(choices=_inventory_choices(), value=None),
+            *[gr.update(choices=_qa_quiz_choices(), value=[], multiselect=True) for _ in range(2)],
+            library_overview(), library_inventory_html())
 
 
 def upload_dashboard(files):
@@ -325,7 +353,7 @@ def build_app() -> gr.Blocks:
             with gr.Row(elem_classes='workspace'):
                 with gr.Column(scale=1, min_width=220, elem_classes='sidebar', elem_id='qa-filters'):
                     gr.Markdown('### Study focus', elem_classes='panel-title')
-                    qa_material = gr.Dropdown(choices=_doc_choices(), value='', label='Course materials', interactive=True)
+                    qa_material = gr.Dropdown(choices=_qa_quiz_choices(), value=[], multiselect=True, info='Empty selection = All available materials. Select multiple to narrow scope.', label='Course materials', interactive=True)
                     qa_topic = gr.Textbox(label='Topic (optional)', placeholder='e.g. quantization')
                     qa_rerank = gr.Checkbox(label='Use reranker', value=True)
                     qa_images = gr.Checkbox(label='Send slide images to the model', value=True)
@@ -347,20 +375,20 @@ def build_app() -> gr.Blocks:
                     gallery = gr.Gallery(label='Original slide/page images (document + slide number)', columns=1, height='auto')
         with gr.Tab('Practice Quiz'):
             with gr.Row(elem_classes='workspace'):
-                with gr.Column(scale=1, min_width=260, elem_classes='sidebar'):
+                with gr.Column(scale=1, min_width=220, elem_classes='sidebar', elem_id='quiz-filters'):
                     gr.Markdown('### Set your practice focus', elem_classes='panel-title')
-                    quiz_material = gr.Dropdown(choices=_doc_choices(), value='', label='Quiz materials', interactive=True)
+                    quiz_material = gr.Dropdown(choices=_qa_quiz_choices(), value=[], multiselect=True, info='Empty selection = All available materials. Select multiple to narrow scope.', label='Quiz materials', interactive=True)
                     quiz_topic = gr.Textbox(label='Quiz topic (optional)')
                     quiz_n = gr.Slider(1, MAX_QUESTIONS, value=3, step=1, label='Number of questions')
                     create = gr.Button('Create practice quiz', variant='primary')
                     gr.Markdown('Choose one answer per question. Solutions stay server-side until grading.', elem_classes='hint')
-                with gr.Column(scale=2, min_width=360, elem_classes='dashboard-card'):
+                with gr.Column(scale=3, min_width=360, elem_classes='dashboard-card', elem_id='quiz-workspace'):
                     gr.Markdown('### Practice workspace', elem_classes='panel-title')
                     quiz_view = gr.Markdown('A little practice goes a long way. Choose your focus, then create a quiz.')
                     radios = [gr.Radio(label=f'Q{i + 1}', visible=False, interactive=True) for i in range(MAX_QUESTIONS)]
                     quiz_id = gr.State('')
                     grade = gr.Button('Grade quiz', variant='primary')
-                with gr.Column(scale=1, min_width=260, elem_classes='dashboard-card'):
+                with gr.Column(scale=1, min_width=220, elem_classes='dashboard-card', elem_id='quiz-evidence'):
                     gr.Markdown('### Review & evidence', elem_classes='panel-title')
                     result = gr.Markdown('Your score, explanations, and source references appear after you answer and grade your quiz.')
         with gr.Tab('Course Materials'):
@@ -372,7 +400,8 @@ def build_app() -> gr.Blocks:
                     refresh = gr.Button('Refresh library')
                 with gr.Column(scale=3, min_width=360, elem_classes='dashboard-card'):
                     gr.Markdown('### Your course library', elem_classes='panel-title')
-                    doc_dropdown = gr.Dropdown(choices=_doc_choices(), label='Documents in library', interactive=True)
+                    inventory = gr.HTML(library_inventory_html(), elem_id='library-inventory')
+                    doc_dropdown = gr.Dropdown(choices=_inventory_choices(), label='Documents in library (single removal target)', interactive=True)
                     remove = gr.Button('Remove selected document')
                     status = gr.Textbox(label='Library status', lines=4, interactive=False)
                     gr.Markdown('PDF text and PPTX are parsed, rendered and indexed by the course backend. Identical content is added only once. PPTX rendering requires LibreOffice; otherwise export to PDF first. Removing a document deletes its stored original, text, images and index entries.', elem_classes='hint')
@@ -383,7 +412,7 @@ def build_app() -> gr.Blocks:
         clear.click(lambda: ('', 'Ready for a new question.', 'Supporting passages appear here after a grounded answer.', []), outputs=[question, answer, evidence, gallery], api_name=False)
         create.click(generate_quiz_ui, [quiz_material, quiz_topic, quiz_n], [quiz_view, *radios, quiz_id], api_name='create_quiz')
         grade.click(grade_quiz, [quiz_id, *radios], result, api_name='grade_quiz')
-        library_outputs = [doc_dropdown, qa_material, quiz_material, overview]
+        library_outputs = [doc_dropdown, qa_material, quiz_material, overview, inventory]
         save.click(upload_dashboard, upload, [status, *library_outputs], api_name='save_materials')
         remove.click(remove_dashboard, doc_dropdown, [status, *library_outputs], api_name='remove_material')
         refresh.click(refresh_library_ui, outputs=library_outputs, api_name='refresh_library')
