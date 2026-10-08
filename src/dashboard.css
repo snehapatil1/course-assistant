@@ -1,0 +1,100 @@
+/* Mountain workspace · decorative landscape, never source evidence. */
+:root {--ca-bg:#e9eff7;--ca-card:#ffffff;--ca-soft:#f3f6fb;--ca-text:#21344e;--ca-muted:#52647b;--ca-line:#dce5f0;--ca-shadow:0 12px 32px #142d5020;--ca-blue:#235fbd;}
+:root[data-course-theme="dark"] {--ca-bg:#101c30;--ca-card:#1a2940;--ca-soft:#22344e;--ca-text:#eff5ff;--ca-muted:#b7c7dc;--ca-line:#3b506c;--ca-shadow:0 12px 32px #00000038;--ca-blue:#8ebaff;}
+body {background:var(--ca-bg)!important;}
+.gradio-container {max-width:1480px!important;padding:0 32px 22px!important;background:transparent!important;color:var(--ca-text)!important;font-family:Segoe UI,Arial,sans-serif!important;position:relative;isolation:isolate;}
+/* Locally bundled NPS photograph; CSS data URI opens no file-serving routes. */
+.gradio-container:before {content:"";position:absolute;z-index:-2;inset:0 calc((100vw - 100%) / -2) auto;height:460px;background-image:linear-gradient(90deg,rgba(12,39,69,.72),rgba(24,62,96,.12) 70%),var(--ca-mountain-photo);background-size:cover;background-position:center top;pointer-events:none;}
+.gradio-container:after {content:"";position:absolute;z-index:-1;inset:0 calc((100vw - 100%) / -2) auto;height:460px;background:linear-gradient(180deg,rgba(11,35,63,.18),transparent 48%,var(--ca-bg) 100%);pointer-events:none;}
+:root[data-course-theme="dark"] .gradio-container:before {background-image:linear-gradient(90deg,rgba(6,20,39,.88),rgba(9,28,49,.44) 75%),var(--ca-mountain-photo);}
+:root[data-course-theme="dark"] .gradio-container:after {background:linear-gradient(180deg,rgba(8,22,41,.16),rgba(8,22,41,.12) 45%,var(--ca-bg) 100%);}
+.course-header h1,.course-header p,.eyebrow,.overview,.brand {text-shadow:0 1px 4px #071c3280;}
+#topbar {align-items:center!important;gap:16px!important;padding:16px 0!important;border-bottom:1px solid #ffffff30!important;}
+.brand {display:flex;align-items:center;gap:12px;color:#fff;font-size:19px;font-weight:650;}
+.brand-mark {width:38px;height:38px;border:1px solid #ffffff70;border-radius:10px;display:grid;place-items:center;font-size:25px;background:#ffffff15;}
+.brand small {display:block;font-size:11px;letter-spacing:1.6px;font-weight:500;color:#d6e5f7;margin-top:3px;}
+#theme-mode {background:#18395e!important;border:1px solid #6c8aae!important;border-radius:10px!important;padding:7px 10px!important;min-width:205px!important;flex-grow:0!important;}
+#theme-mode span,#theme-mode label {color:#fff!important;font-size:12px!important;}
+#theme-mode label {background:transparent!important;border-color:#7894b6!important;}
+#theme-mode label.selected {background:#3166a4!important;}
+.course-header {border:0;padding:23px 0 16px;margin:0;}
+.course-header h1 {font-size:32px;letter-spacing:-.8px;color:#fff;}
+.course-header p,.eyebrow {color:#e0ebfa;}.eyebrow{font-size:10px;letter-spacing:2px;}
+.pill {border-color:#94b0d1;background:#18395e85;color:#f3f8ff;font-size:12px;}
+.overview {display:flex;align-items:center;gap:0;margin:0 0 17px;color:#e2ecfa;font-size:13px;}
+.overview strong {font-size:22px;font-weight:650;color:#fff;margin-right:5px;}
+.tabs {border:0!important;background:transparent!important;}
+.tab-nav {background:var(--ca-card)!important;border:1px solid var(--ca-line)!important;border-radius:13px!important;padding:5px 9px!important;box-shadow:var(--ca-shadow);gap:6px!important;}
+.tab-nav button {color:var(--ca-muted)!important;font-size:14px!important;padding:10px 24px!important;border-radius:8px!important;border:0!important;font-weight:600!important;}
+.tab-nav button.selected {background:var(--ca-soft)!important;color:var(--ca-blue)!important;box-shadow:inset 0 -2px var(--ca-blue)!important;}
+.tabitem {padding:0!important;border:0!important;background:transparent!important;}
+.workspace {padding-top:20px!important;gap:20px!important;align-items:stretch!important;}
+.sidebar,.dashboard-card {background:var(--ca-card)!important;border:1px solid var(--ca-line)!important;padding:22px!important;border-radius:15px!important;box-shadow:var(--ca-shadow);min-width:0;}
+.panel-title h3,.panel-title {font-size:18px!important;letter-spacing:-.3px;color:var(--ca-text)!important;}
+.panel-title {padding-bottom:7px!important;}
+.hint,.hint p {color:var(--ca-muted)!important;font-size:12px!important;line-height:1.65!important;}
+.answer-box,.evidence-empty {background:var(--ca-soft);border:1px solid var(--ca-line);border-radius:11px;padding:22px;color:var(--ca-muted);font-size:14px;line-height:1.7;min-height:150px;}
+.empty-heading {font-size:17px;color:var(--ca-text);font-weight:600;line-height:1.4;margin-bottom:12px;}
+.evidence-empty:before {content:"▤";display:block;font-size:30px;line-height:1.3;color:var(--ca-blue);margin-bottom:16px;}
+.source-card {background:var(--ca-soft);border-color:var(--ca-line);padding:15px;overflow-wrap:anywhere;}.source-card h3{color:var(--ca-text);}.source-location{color:var(--ca-muted);}.source-excerpt{background:var(--ca-card);color:var(--ca-text);padding:12px;}
+.study-note {border-top:1px solid var(--ca-line);margin-top:26px;padding-top:22px;font-size:13px;line-height:1.6;color:var(--ca-text);}.study-note p{color:var(--ca-muted);}.note-icon{display:block;font-size:27px;color:var(--ca-blue);margin-bottom:8px;}
+#answer-status,#quiz-status {padding:10px 13px!important;border:1px solid var(--ca-line);border-left:3px solid #d3a44e;border-radius:7px;background:var(--ca-soft);font-size:12px!important;}
+#answer-status p,#quiz-status p {font-size:12px!important;color:var(--ca-muted)!important;}
+.gradio-container .block {border-color:var(--ca-line)!important;}
+.gradio-container input,.gradio-container textarea {color:var(--ca-text)!important;}
+.gradio-container textarea::placeholder,.gradio-container input::placeholder{color:var(--ca-muted)!important;opacity:1;}
+button:focus-visible,input:focus-visible,textarea:focus-visible {outline:3px solid #77aaff!important;outline-offset:3px;}
+#library-note{margin-top:16px;}
+#library-inventory table {width:100%;table-layout:fixed;border-collapse:collapse;color:var(--ca-text);font-size:13px;}
+#library-inventory th,#library-inventory td {text-align:left;vertical-align:top;padding:12px 8px;border-bottom:1px solid var(--ca-line);overflow-wrap:anywhere;white-space:normal;}
+#library-inventory th:first-child {width:47%;}
+#library-inventory th:nth-child(2) {width:14%;}
+#library-inventory small {display:block;color:var(--ca-muted);font-size:10px;margin-top:5px;}
+/* Radio option flex children otherwise retain their min-content width. */
+#quiz-workspace .prose,#quiz-evidence .prose {overflow-wrap:anywhere;white-space:normal;}
+#quiz-workspace label {width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;align-items:flex-start!important;display:block!important;white-space:normal!important;}
+#quiz-workspace label span,#quiz-workspace label p,#quiz-workspace label div {min-width:0!important;white-space:normal!important;overflow-wrap:anywhere!important;overflow:visible!important;display:block!important;}
+#quiz-workspace input[type=radio] {flex-shrink:0;margin-top:4px;}
+/* Gradio's radio option containers often clamp height/width — override aggressively. */
+#quiz-workspace .wrap {overflow:visible!important;white-space:normal!important;}
+#quiz-workspace .block {min-width:0!important;max-width:100%!important;flex:1 1 auto!important;height:auto!important;min-height:0!important;}
+/* Radio button option labels — force wrap on all descendants */
+#quiz-workspace [class*="option"],#quiz-workspace [class*="radio"] {white-space:normal!important;overflow-wrap:anywhere!important;}
+#quiz-workspace [class*="option"] span,#quiz-workspace [class*="option"] p,#quiz-workspace [class*="option"] div,#quiz-workspace [class*="radio"] span,#quiz-workspace [class*="radio"] p,#quiz-workspace [class*="radio"] div {white-space:normal!important;overflow-wrap:anywhere!important;display:block!important;}
+/* Gradio 4 radio buttons: label text (question) and option text must wrap */
+#quiz-workspace .wrap .label span,#quiz-workspace .wrap .label p {white-space:normal!important;overflow-wrap:break-word!important;word-break:break-word!important;hyphens:auto!important;display:block!important;max-width:100%!important;min-width:0!important;flex:1 1 auto!important;}
+#quiz-workspace .wrap .options .option .label span,#quiz-workspace .wrap .options .option .label p {white-space:normal!important;overflow-wrap:break-word!important;word-break:break-word!important;display:block!important;max-width:100%!important;min-width:0!important;flex:1 1 auto!important;}
+/* Remove any fixed height constraints */
+#quiz-workspace .wrap {height:auto!important;min-height:0!important;}
+#quiz-workspace .block {height:auto!important;min-height:0!important;}
+@media(max-width:950px){#quiz-filters{flex:1 1 100%!important;}#quiz-workspace{flex:3 1 360px!important;}#quiz-evidence{flex:1 1 220px!important;}}
+@media(max-width:650px){#quiz-workspace,#quiz-evidence{flex:1 1 100%!important;min-width:0!important;}}
+#app-footnote{padding:18px 3px 0!important;}#app-footnote p{font-size:11px!important;color:var(--ca-muted)!important;}
+.brand,.brand div,.brand-mark {color:#fff!important;}
+#topbar>.form {background:transparent!important;border:0!important;box-shadow:none!important;}
+.gradio-container .info {color:var(--ca-muted)!important;}
+.gradio-container .wrap:has(>input[role="combobox"]) {border-color:var(--ca-line)!important;}
+.gradio-container {width:100%!important;min-width:0!important;box-sizing:border-box!important;}
+.gradio-container .main {max-width:100%!important;min-width:0!important;padding:0!important;}
+.gradio-container .wrap,.gradio-container .contain,.gradio-container .tabs {min-width:0!important;max-width:100%;}
+.workspace>.column {max-width:100%!important;box-sizing:border-box;}
+.dashboard-card .block {max-width:100%!important;min-width:0!important;}
+.dashboard-card:has(table) {overflow-x:auto!important;}
+/* Use stable ARIA roles rather than Gradio's versioned tab classes. */
+.gradio-container .main {max-width:none!important;padding-top:0!important;}
+.gradio-container .contain {padding:0!important;}
+.gradio-container .html-container {padding:0!important;}
+.gradio-container .tab-wrapper {border:0!important;}
+.gradio-container [role="tablist"] {background:var(--ca-card)!important;border:1px solid var(--ca-line)!important;border-radius:12px!important;padding:5px 9px!important;box-shadow:var(--ca-shadow);height:auto!important;gap:6px;}
+.gradio-container [role="tab"] {color:var(--ca-muted)!important;font-size:14px!important;padding:10px 24px!important;border-radius:8px!important;border:0!important;font-weight:600!important;}
+.gradio-container [role="tab"][aria-selected="true"] {background:var(--ca-soft)!important;color:var(--ca-blue)!important;box-shadow:inset 0 -2px var(--ca-blue)!important;}
+.gradio-container .prose {color:var(--ca-text);}
+#topbar{padding:8px 0!important;}
+.course-header{padding:14px 0 8px;}
+.overview{margin-bottom:4px;}
+.workspace{padding-top:10px!important;}
+.sidebar,.dashboard-card{gap:12px!important;}
+.gradio-container .block:has(>.prose){padding:0!important;}
+@media(max-width:650px){.gradio-container [role="tab"]{font-size:12px!important;padding:9px 10px!important;}}
+@media(max-width:950px){.gradio-container{padding:0 20px 20px!important;}.workspace{flex-wrap:wrap!important;}#qa-filters{flex:1 1 100%!important;}.study-note{display:none;}#qa-workspace{flex:2 1 360px!important;}#qa-evidence{flex:1 1 230px!important;}}
+@media(max-width:650px){.gradio-container{padding:0 12px 16px!important;overflow-x:clip;}#topbar{gap:8px!important;flex-direction:column!important;align-items:stretch!important;}#topbar>.form{align-self:flex-start!important;width:210px!important;}.brand{font-size:17px;}.brand small{font-size:9px;}.course-header{padding:17px 0 12px;gap:10px;}.course-header h1{font-size:27px;}.course-header p{font-size:13px;}.pill{display:none;}.overview{font-size:11px;}.overview strong{font-size:18px;}.tab-nav{gap:0!important;}.tab-nav button{padding:9px 10px!important;font-size:12px!important;}.workspace{gap:14px!important;}#qa-workspace,#qa-evidence,.workspace>.column{flex:1 1 100%!important;min-width:0!important;}.sidebar,.dashboard-card{padding:17px!important;}.gradio-container:after{top:140px;}.gradio-container .form{min-width:0!important;}#theme-mode{min-width:185px!important;}}

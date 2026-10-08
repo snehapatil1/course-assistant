@@ -186,7 +186,16 @@ def remove_document(
     pages = load_manifest(out_dir)
     doc_pages = [p for p in pages if p["doc_id"] == doc_id]
     if not doc_pages:
-        return {"status": "not_found", "doc_id": doc_id}
+        return {"status": "not_found", "doc_id": doc_id,
+                "message": "Not removed: this record has no active document. Index-only and unprocessed upload records cannot be removed here."}
+
+    active_ids = {p['doc_id'] for p in pages}
+    index_path = out_dir / 'indexes' / 'bm25' / 'corpus_meta.json'
+    if index_path.exists():
+        indexed_ids = {c['doc'] for c in json.loads(index_path.read_text(encoding='utf-8'))}
+        if indexed_ids - active_ids:
+            return {"status": "blocked", "doc_id": doc_id,
+                    "message": "Not removed: rebuilding indexes would discard unrelated historical records. Back up and reconcile the library before removal."}
 
     # remove rendered images
     for p in doc_pages:
@@ -246,6 +255,53 @@ def list_documents(out_dir: Path = config.OUTPUTS_DIR) -> list[dict]:
         entry["units"] += 1
         if (Path(out_dir) / "pages" / (p["page_id"] + ".png")).exists():
             entry["images"] += 1
+    return list(docs.values())
+
+
+def list_inventory(out_dir: Path = config.OUTPUTS_DIR) -> list[dict]:
+    """Read-only inventory, including metadata outside the active manifest.
+
+    Index-only records are evidence of prior processing, NOT ready documents.
+    Never migrate, reindex, or infer an original path from a document title.
+    """
+    out_dir = Path(out_dir)
+    docs = {d['doc_id']: dict(d, original_available=False,
+                            status='Processed text · original unavailable')
+            for d in list_documents(out_dir)}
+    index = out_dir / 'indexes' / 'bm25' / 'corpus_meta.json'
+    if index.exists():
+        units: dict[str, set] = {}
+        for chunk in json.loads(index.read_text(encoding='utf-8')):
+            doc_id = chunk['doc']
+            if doc_id in docs and doc_id not in units:
+                continue
+            units.setdefault(doc_id, set()).add(chunk['page_no'])
+            docs.setdefault(doc_id, dict(doc_id=doc_id,
+                title=chunk.get('doc_title') or doc_id, kind=chunk['kind'],
+                units=0, images=0, original_available=False,
+                status='Index only · not in active library · original unavailable'))
+            docs[doc_id]['units'] = len(units[doc_id])
+    managed = out_dir.parent / 'data' / 'library'
+    registered = set()
+    for page in load_manifest(out_dir):
+        name = page.get('stored_file') or page.get('source_file')
+        if name and Path(name).name == name:
+            registered.add(name)
+            original = managed / name
+            if original.is_file() and not original.is_symlink():
+                docs[page['doc_id']]['original_available'] = True
+                docs[page['doc_id']]['status'] = 'Processed text · original stored'
+    for folder in (managed, out_dir.parent / 'data' / 'materials'):
+        for original in sorted(folder.glob('*')):
+            if (not original.is_file() or original.is_symlink()
+                    or original.suffix.lower() not in SUPPORTED_SUFFIXES
+                    or (folder == managed and original.name in registered)):
+                continue
+            key = f'upload:{folder.name}/{original.name}'
+            docs[key] = dict(doc_id=key, title=original.name,
+                kind='slide' if original.suffix.lower() == '.pptx' else 'page',
+                units=0, images=0, original_available=True,
+                status='Uploaded · not processed')
     return list(docs.values())
 
 

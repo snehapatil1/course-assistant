@@ -1,0 +1,4 @@
+# Mountain UI plus the real course backend.
+-r requirements.txt
+gradio==6.29.1
+pytest==9.1.1

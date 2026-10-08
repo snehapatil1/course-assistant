@@ -11,13 +11,36 @@ hardcoded anywhere; the corpus is whatever the user adds in the app.
 > Detailed setup, usage, findings, and limitations follow below (in progress).
 > See `PROGRESS.md` for the step-by-step build log.
 
-## Quick start
+## Default interface: Mountain Master
+
+**Mountain Master is the main interface on the Meaghan branch**, combining the mountain dashboard design with the course backend. It includes **Q&A**, **Practice Quiz**, **Course Materials**, and a persistent **Light / Dark** appearance control. The interface displays the design label **Mountain v2**.
+
+### Open on Windows
+
+Download `Start Course Assistant.bat` from this page, place it in the `course-assistant` folder, then double-click it. It installs dependencies and opens the dashboard in your browser. Keep the window open while using the app.
+
+For detailed dashboard instructions, see [README-DASHBOARD.md](README-DASHBOARD.md).
+
+### Preview
+
+**Light mode**
+
+![Mountain Master — light](outputs/screenshots/mountain-master-qa-light.png)
+
+**Dark mode**
+
+![Mountain Master — dark](outputs/screenshots/mountain-master-qa-dark.png)
+
+### Manual setup (macOS/Linux)
 
 ```bash
-uv venv --python 3.11 .venv && uv pip install --python .venv/bin/python -r requirements.txt
-cp .env.example .env          # fill in the class endpoint values (see below)
-.venv/bin/python -m src.app   # opens the Gradio app
+uv venv --python 3.11 .venv
+uv pip install --python .venv/bin/python -r requirements-dashboard.txt
+cp .env.example .env          # only if .env does not already exist; configure locally
+.venv/bin/python -m src.app   # opens the default Mountain interface
 ```
+
+On Windows, use `.venv\Scripts\python.exe` instead of `.venv/bin/python`. All launch methods use `src.app`; the older standalone dashboard modules are not alternate entry points.
 
 **Materials management (works with zero configuration):** in the app's
 Materials tab, upload PDF/PPTX files. The same file uploaded twice is a no-op
