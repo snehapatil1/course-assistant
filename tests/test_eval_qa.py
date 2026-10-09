@@ -166,3 +166,68 @@ def test_main_list_defaults(capsys):
     out = capsys.readouterr().out
     assert "What is quantization?" in out
     assert "capital of France" in out
+
+
+# --------------------------------------------------------------------------- #
+# Assignment eval-set spec: 5-10 questions, >=2 visual incl. meme, >=1
+# unanswerable
+# --------------------------------------------------------------------------- #
+def test_default_eval_set_matches_assignment_spec():
+    qs = eval_qa.DEFAULT_EVAL_SET
+    assert 5 <= len(qs) <= 10
+    assert any("Vibe Coding" in q for q in qs)          # the meme question
+    assert sum(1 for q in qs if "meme" in q.lower()) >= 1
+    assert any("capital of France" in q for q in qs)     # unanswerable probe
+    assert any("diagram" in q for q in qs)               # second visual q
+
+
+# --------------------------------------------------------------------------- #
+# Design comparison: rerank ON vs OFF (same questions)
+# --------------------------------------------------------------------------- #
+def test_compare_rerank_hermetic(tmp_path):
+    seen = []
+    def retrieve(query, use_rerank=True):
+        seen.append(use_rerank)
+        return _candidates(tmp_path)
+    out = tmp_path / "cmp.json"
+    payload = eval_qa.compare_rerank(
+        questions=[Q1], retrieve_fn=retrieve,
+        chat_fn=lambda messages, **kw: _valid_payload(), out_path=out)
+    assert out.exists()
+    data = json.loads(out.read_text(encoding="utf-8"))
+    assert data["rerank_on_summary"]["schema_valid"] == 1
+    assert data["rerank_off_summary"]["schema_valid"] == 1
+    assert seen == [True, False]  # same questions, rerank toggled
+    row = data["comparison"][0]
+    assert row["question"] == Q1
+    assert row["rerank_on"]["valid"] is True
+    assert row["rerank_off"]["valid"] is True
+    assert row["rerank_on"]["n_sources"] == 1
+    assert row["rerank_on"]["latency_s"] is not None
+    assert "correctness is judged manually" in data["notes"]
+    # latest copy written alongside
+    assert (tmp_path / eval_qa.COMPARE_LATEST_NAME).exists()
+
+
+def test_compare_rerank_records_failures_per_side(tmp_path):
+    calls = [0]
+    def chat(messages, **kw):
+        calls[0] += 1
+        # first call = rerank-ON run (valid); every later call = rerank-OFF
+        # run, which returns empty completions and exhausts the ladder
+        if calls[0] == 1:
+            return _valid_payload()
+        return ""
+    out = tmp_path / "cmp2.json"
+    payload = eval_qa.compare_rerank(
+        questions=[Q1], retrieve_fn=lambda q, use_rerank=True: _candidates(tmp_path),
+        chat_fn=chat, out_path=out)
+    on = payload["rerank_on_summary"]
+    off = payload["rerank_off_summary"]
+    assert on["schema_valid"] == 1
+    assert off["schema_valid"] == 0
+    assert off["ladder_exhausted"] == 1
+    row = payload["comparison"][0]
+    assert row["rerank_on"]["valid"] is True
+    assert row["rerank_off"]["valid"] is False
+    assert any("ladder exhausted" in e for e in row["rerank_off"]["validation_errors"])

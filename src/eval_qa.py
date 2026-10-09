@@ -18,6 +18,12 @@ Usage::
     python -m src.eval_qa --list-defaults
     python -m src.eval_qa --questions "What is quantization?" "Explain RAG"
     python -m src.eval_qa --no-vision --out outputs/findings/my_eval.json
+    python -m src.eval_qa --compare-rerank          # rerank ON vs OFF, same Qs
+
+The default eval set follows the assignment spec: 5-10 questions covering
+slide/syllabus text, at least two visual questions (including the Week 2
+"Vibe Coding on Prod" meme), and at least one question the materials cannot
+answer.
 """
 from __future__ import annotations
 
@@ -34,9 +40,9 @@ from src import config, qa
 # Eval set
 # --------------------------------------------------------------------------- #
 # Tailor to YOUR library (the app is generic - these probe topics the team's
-# course decks cover). Out-of-materials questions are intentional: they prove
-# the model says "not in the materials" instead of inventing (criterion 3),
-# and the diagram questions prove the vision path (criterion 4).
+# course decks cover). Follows the assignment spec: 5-10 questions, at least
+# two visual questions (including the Week 2 "Vibe Coding on Prod" meme),
+# and at least one question the materials cannot answer (honesty probe).
 DEFAULT_EVAL_SET: list[str] = [
     # --- text-grounded factual (must cite doc + page + excerpt) ----------
     "What is quantization?",
@@ -46,19 +52,20 @@ DEFAULT_EVAL_SET: list[str] = [
     # --- multi-source synthesis (must cite 2+ sources) --------------------
     "How do quantization and fine-tuning compare as ways to optimize an LLM?",
     "What are the main components of a retrieval-augmented generation system?",
-    # --- vision path (must be answered from the page/slide image) ----------
+    # --- vision path: assignment requires >=2 visual questions -------------
+    "Find the meme about Vibe Coding on 'Prod' in the Week 2 slides and "
+    "summarize what its image and text show.",
     "Describe the RAG pipeline as it is shown in the diagram.",
-    "What does the architecture diagram say about how this assistant works?",
-    # --- out-of-materials (must be an honest refusal, sources == []) -------
+    # --- out-of-materials: assignment requires >=1 the materials can't answer
     "What is the capital of France?",
-    "Who won the 2023 Super Bowl?",
-    # --- thin/ambiguous evidence probes ------------------------------------
+    # --- thin/ambiguous evidence probe ------------------------------------
     "How was this course assistant built?",
-    "Summarize what the library says about LLM deployment.",
 ]
 
 RESULTS_NAME = "grounded_qa_eval"
 LATEST_NAME = f"{RESULTS_NAME}_latest.json"
+COMPARE_NAME = "grounded_qa_compare_rerank"
+COMPARE_LATEST_NAME = f"{COMPARE_NAME}_latest.json"
 
 
 # --------------------------------------------------------------------------- #
@@ -100,12 +107,14 @@ def audit_sources(sources: list[dict], candidates: list) -> list[dict]:
 def run_eval(questions: list[str] | None = None,
              retrieve_fn=None, chat_fn=None,
              include_images: bool = True, temperature: float = 0.0,
-             use_rerank: bool = True, out_path: str | Path | None = None) -> dict:
+             use_rerank: bool = True, out_path: str | Path | None = None,
+             write_results: bool = True) -> dict:
     """Run the eval set and return the full payload (also written to disk).
 
     ``retrieve_fn(query, use_rerank=...) -> list[Candidate]`` and
     ``chat_fn(messages, **kwargs) -> str`` are injectable for hermetic tests;
-    defaults use the real pipeline.
+    defaults use the real pipeline. ``write_results=False`` suppresses file
+    output (used by ``compare_rerank``, which writes one combined file).
     """
     if retrieve_fn is None:
         from src.retrieve import retrieve as retrieve_fn
@@ -179,16 +188,17 @@ def run_eval(questions: list[str] | None = None,
         "results": records,
     }
 
-    if out_path is None:
-        ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-        out_path = config.FINDINGS_DIR / f"{RESULTS_NAME}_{ts}.json"
-        config.FINDINGS_DIR.mkdir(parents=True, exist_ok=True)
-    out_path = Path(out_path)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    if out_path.name != LATEST_NAME:
-        (out_path.parent / LATEST_NAME).write_text(
-            json.dumps(payload, indent=2), encoding="utf-8")
+    if write_results:
+        if out_path is None:
+            ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+            out_path = config.FINDINGS_DIR / f"{RESULTS_NAME}_{ts}.json"
+            config.FINDINGS_DIR.mkdir(parents=True, exist_ok=True)
+        out_path = Path(out_path)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        if out_path.name != LATEST_NAME:
+            (out_path.parent / LATEST_NAME).write_text(
+                json.dumps(payload, indent=2), encoding="utf-8")
     return payload
 
 
@@ -242,6 +252,94 @@ def _print_summary(summary: dict) -> None:
             print(f"    - {f['question'][:70]} -> {'; '.join(f['errors'])[:120]}")
 
 
+def _cmp_row(rec: dict) -> dict:
+    """Per-question comparison row: correctness(valid), support, timing."""
+    return {
+        "valid": rec.get("valid"),
+        "validation_errors": rec.get("validation_errors") or [],
+        "latency_s": rec.get("latency_s"),
+        "n_sources": len(rec.get("sources") or []),
+        "honest_refusal": bool(rec.get("answer") and qa.is_not_found(rec["answer"])),
+        "retrieved_docs": sorted({r["doc"] for r in rec.get("retrieved", [])}),
+    }
+
+
+def compare_rerank(questions: list[str] | None = None,
+                   retrieve_fn=None, chat_fn=None,
+                   include_images: bool = True, temperature: float = 0.0,
+                   out_path: str | Path | None = None) -> dict:
+    """Assignment's design comparison: rerank ON vs OFF, SAME questions.
+
+    Records per question whether the answer was schema+support valid, how
+    many sources it cited, and how long it took (the assignment asks for
+    correctness, source support, and timing). Answer *correctness* is a
+    human judgment - review each answer against ground truth in the README.
+    Saves one combined file to ``outputs/findings/``.
+    """
+    questions = list(questions) if questions else list(DEFAULT_EVAL_SET)
+    rerank_on = run_eval(questions=questions, retrieve_fn=retrieve_fn,
+                         chat_fn=chat_fn, include_images=include_images,
+                         temperature=temperature, use_rerank=True,
+                         write_results=False)
+    rerank_off = run_eval(questions=questions, retrieve_fn=retrieve_fn,
+                          chat_fn=chat_fn, include_images=include_images,
+                          temperature=temperature, use_rerank=False,
+                          write_results=False)
+    rows = []
+    for a, b in zip(rerank_on["results"], rerank_off["results"]):
+        rows.append({
+            "question": a["question"],
+            "conducted": bool(a.get("conducted")) and bool(b.get("conducted")),
+            "rerank_on": _cmp_row(a),
+            "rerank_off": _cmp_row(b),
+        })
+    payload = {
+        "task": "4-grounded-qa-answer-sources-as-validated-structured-output-"
+                "vision-capable-no-invented-citations",
+        "run_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "n_questions": len(questions),
+        "temperature": temperature,
+        "include_images": include_images,
+        "rerank_on_summary": rerank_on["summary"],
+        "rerank_off_summary": rerank_off["summary"],
+        "notes": "valid = strict JSON schema + sources support the answer. "
+                 "Answer correctness is judged manually against the source "
+                 "materials (see README).",
+        "comparison": rows,
+    }
+    if out_path is None:
+        ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+        out_path = config.FINDINGS_DIR / f"{COMPARE_NAME}_{ts}.json"
+        config.FINDINGS_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    if out_path.name != COMPARE_LATEST_NAME:
+        (out_path.parent / COMPARE_LATEST_NAME).write_text(
+            json.dumps(payload, indent=2), encoding="utf-8")
+    return payload
+
+
+def _print_comparison(payload: dict) -> None:
+    on, off = payload["rerank_on_summary"], payload["rerank_off_summary"]
+    print(f"\n=== Rerank ON vs OFF comparison: {payload['n_questions']} questions ===")
+    print(f"  {'question':<58} {'ON valid/λ(s)':>14} {'OFF valid/λ(s)':>14}")
+    for row in payload["comparison"]:
+        a, b = row["rerank_on"], row["rerank_off"]
+        on_cell = f"{a['valid']}/{a['latency_s']}" if a["latency_s"] is not None else "-"
+        off_cell = f"{b['valid']}/{b['latency_s']}" if b["latency_s"] is not None else "-"
+        print(f"  {row['question'][:58]:<58} {on_cell:>14} {off_cell:>14}")
+    print(f"\n  rerank ON : {on['schema_valid']}/{on['conducted']} valid, "
+          f"avg {sum(r['rerank_on']['latency_s'] or 0 for r in payload['comparison'] if r['rerank_on']['latency_s'] is not None) / max(1, on['conducted']):.1f}s")
+    print(f"  rerank OFF: {off['schema_valid']}/{off['conducted']} valid, "
+          f"avg {sum(r['rerank_off']['latency_s'] or 0 for r in payload['comparison'] if r['rerank_off']['latency_s'] is not None) / max(1, off['conducted']):.1f}s")
+    if on["failures"] or off["failures"]:
+        print("  FAILURES:")
+        for label, s in (("ON", on), ("OFF", off)):
+            for f in s["failures"]:
+                print(f"    [{label}] {f['question'][:60]} -> {'; '.join(f['errors'])[:100]}")
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description=((__doc__ or "Grounded QA eval harness").splitlines()[0]))
@@ -253,6 +351,9 @@ def main(argv: list[str] | None = None) -> int:
                     help="disable sending page/slide images to the model")
     ap.add_argument("--no-rerank", action="store_true",
                     help="disable the class reranker in retrieval")
+    ap.add_argument("--compare-rerank", action="store_true",
+                    help="run the eval set with rerank ON and OFF and save a "
+                    "side-by-side comparison (assignment design comparison)")
     ap.add_argument("--list-defaults", action="store_true",
                     help="print the default eval set and exit")
     args = ap.parse_args(argv)
@@ -262,17 +363,29 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{i:2}. {q}")
         return 0
 
-    questions = args.questions or None
-    if questions:
-        print(f"Eval set: {len(questions)} question(s)")
-    else:
-        print(f"Eval set: default ({len(DEFAULT_EVAL_SET)} questions)")
-
     from src.retrieve import endpoint_ready
     if not endpoint_ready("chat"):
         print("chat endpoint not configured - copy .env.example to .env and set "
               "the class values (see README.md).", file=sys.stderr)
         return 2
+
+    questions = args.questions or None
+    if args.compare_rerank:
+        if questions:
+            print(f"Comparison eval set: {len(questions)} question(s)")
+        else:
+            print(f"Comparison eval set: default ({len(DEFAULT_EVAL_SET)} questions)")
+        payload = compare_rerank(questions=questions,
+                                 include_images=not args.no_vision,
+                                 out_path=args.out)
+        _print_comparison(payload)
+        print(f"\nSaved: {args.out or (config.FINDINGS_DIR / COMPARE_LATEST_NAME)}")
+        return 0
+
+    if questions:
+        print(f"Eval set: {len(questions)} question(s)")
+    else:
+        print(f"Eval set: default ({len(DEFAULT_EVAL_SET)} questions)")
 
     payload = run_eval(questions=questions,
                        include_images=not args.no_vision,

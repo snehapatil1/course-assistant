@@ -1,0 +1,313 @@
+{
+  "task": "4-grounded-qa-answer-sources-as-validated-structured-output-vision-capable-no-invented-citations",
+  "run_at": "2026-10-08T22:01:06+00:00",
+  "n_questions": 10,
+  "temperature": 0.0,
+  "include_images": true,
+  "rerank_on_summary": {
+    "n_questions": 10,
+    "conducted": 10,
+    "not_conducted": 0,
+    "schema_valid": 10,
+    "valid_ratio": 1.0,
+    "honest_refusals": 5,
+    "with_sources": 5,
+    "vision_path_used": 10,
+    "ladder_used": 0,
+    "ladder_exhausted": 0,
+    "failures": []
+  },
+  "rerank_off_summary": {
+    "n_questions": 10,
+    "conducted": 10,
+    "not_conducted": 0,
+    "schema_valid": 10,
+    "valid_ratio": 1.0,
+    "honest_refusals": 6,
+    "with_sources": 4,
+    "vision_path_used": 10,
+    "ladder_used": 0,
+    "ladder_exhausted": 0,
+    "failures": []
+  },
+  "notes": "valid = strict JSON schema + sources support the answer. Answer correctness is judged manually against the source materials (see README).",
+  "comparison": [
+    {
+      "question": "What is quantization?",
+      "conducted": true,
+      "rerank_on": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 5.6,
+        "n_sources": 2,
+        "honest_refusal": false,
+        "retrieved_docs": [
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      },
+      "rerank_off": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 3.58,
+        "n_sources": 1,
+        "honest_refusal": false,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      }
+    },
+    {
+      "question": "What does fine-tuning do to a model's weights?",
+      "conducted": true,
+      "rerank_on": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 4.64,
+        "n_sources": 0,
+        "honest_refusal": true,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      },
+      "rerank_off": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 6.76,
+        "n_sources": 0,
+        "honest_refusal": true,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      }
+    },
+    {
+      "question": "What is a context window and why does it matter for RAG?",
+      "conducted": true,
+      "rerank_on": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 21.88,
+        "n_sources": 4,
+        "honest_refusal": false,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      },
+      "rerank_off": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 13.63,
+        "n_sources": 3,
+        "honest_refusal": false,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      }
+    },
+    {
+      "question": "How can a Gradio app be launched so that others can reach it?",
+      "conducted": true,
+      "rerank_on": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 3.73,
+        "n_sources": 0,
+        "honest_refusal": true,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      },
+      "rerank_off": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 4.09,
+        "n_sources": 0,
+        "honest_refusal": true,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      }
+    },
+    {
+      "question": "How do quantization and fine-tuning compare as ways to optimize an LLM?",
+      "conducted": true,
+      "rerank_on": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 20.32,
+        "n_sources": 3,
+        "honest_refusal": false,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e"
+        ]
+      },
+      "rerank_off": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 13.45,
+        "n_sources": 3,
+        "honest_refusal": false,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      }
+    },
+    {
+      "question": "What are the main components of a retrieval-augmented generation system?",
+      "conducted": true,
+      "rerank_on": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 6.61,
+        "n_sources": 0,
+        "honest_refusal": true,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      },
+      "rerank_off": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 3.54,
+        "n_sources": 0,
+        "honest_refusal": true,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      }
+    },
+    {
+      "question": "Find the meme about Vibe Coding on 'Prod' in the Week 2 slides and summarize what its image and text show.",
+      "conducted": true,
+      "rerank_on": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 7.89,
+        "n_sources": 1,
+        "honest_refusal": false,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      },
+      "rerank_off": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 8.61,
+        "n_sources": 1,
+        "honest_refusal": false,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      }
+    },
+    {
+      "question": "Describe the RAG pipeline as it is shown in the diagram.",
+      "conducted": true,
+      "rerank_on": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 5.02,
+        "n_sources": 1,
+        "honest_refusal": false,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      },
+      "rerank_off": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 7.37,
+        "n_sources": 0,
+        "honest_refusal": true,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      }
+    },
+    {
+      "question": "What is the capital of France?",
+      "conducted": true,
+      "rerank_on": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 5.01,
+        "n_sources": 0,
+        "honest_refusal": true,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      },
+      "rerank_off": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 3.88,
+        "n_sources": 0,
+        "honest_refusal": true,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      }
+    },
+    {
+      "question": "How was this course assistant built?",
+      "conducted": true,
+      "rerank_on": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 8.4,
+        "n_sources": 0,
+        "honest_refusal": true,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      },
+      "rerank_off": {
+        "valid": true,
+        "validation_errors": [],
+        "latency_s": 4.72,
+        "n_sources": 0,
+        "honest_refusal": true,
+        "retrieved_docs": [
+          "mbax_6418_syllabus_fall_2026__7b78501b",
+          "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286"
+        ]
+      }
+    }
+  ]
+}

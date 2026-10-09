@@ -38,6 +38,22 @@ def test_parse_json_rejects_non_json():
         qa.parse_json_response("sorry, no json here")
 
 
+def test_parse_repaired_unclosed_braces():
+    # model cut off before the final closing brace
+    raw = '{"answer": "x", "sources": [{"doc": "a", "page_no": 1, "excerpt": "e"}'
+    obj = qa.parse_json_response(raw)
+    assert obj["answer"] == "x"
+    assert obj["sources"][0]["doc"] == "a"
+
+
+def test_parse_repaired_truncated_mid_string():
+    # model cut off inside a string value; repair returns a parseable object
+    raw = '{"answer": "Based on the provided materials, a **c'
+    obj = qa.parse_json_response(raw)
+    assert "answer" in obj
+    assert obj["answer"] == ""  # truncated value -> empty, caught by schema
+
+
 def test_validate_accepts_supported_source():
     obj = {
         "answer": "Quantization reduces precision.",
@@ -196,6 +212,25 @@ def test_ladder_rescues_with_larger_budget():
     assert calls == [None, 8192]
     assert result["ladder"] == {"rungs_used": 2, "retried": True,
                                 "images_stripped": False}
+
+
+def test_ladder_vision_rung_gets_headroom_budget(tmp_path):
+    # image-bearing prompts send 8192 tokens from rung 1 (fewer truncations)
+    from PIL import Image
+    cands = _candidates()
+    for c in cands:
+        img = tmp_path / f"{c.chunk_id}.png"
+        Image.new("RGB", (32, 32), "white").save(img)
+        c.image_path = str(img)
+    seen = []
+    def stub_chat(messages, **kwargs):
+        seen.append(kwargs.get("max_tokens"))
+        return _valid_stub_payload()
+    result = qa.answer_question("What is quantization?", cands, chat_fn=stub_chat,
+                                include_images=True)
+    assert result["valid"] is True
+    assert seen == [8192]
+    assert result["ladder"]["rungs_used"] == 1 and not result["ladder"]["retried"]
 
 
 def test_ladder_strips_images_on_final_rung(tmp_path):

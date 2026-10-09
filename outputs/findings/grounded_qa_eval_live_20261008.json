@@ -1,0 +1,760 @@
+{
+  "task": "4-grounded-qa-answer-sources-as-validated-structured-output-vision-capable-no-invented-citations",
+  "run_at": "2026-10-08T21:51:01+00:00",
+  "temperature": 0.0,
+  "include_images": true,
+  "use_rerank": true,
+  "n_questions": 10,
+  "summary": {
+    "n_questions": 10,
+    "conducted": 10,
+    "not_conducted": 0,
+    "schema_valid": 8,
+    "valid_ratio": 0.8,
+    "honest_refusals": 4,
+    "with_sources": 6,
+    "vision_path_used": 4,
+    "ladder_used": 0,
+    "ladder_exhausted": 0,
+    "failures": [
+      {
+        "question": "What is a context window and why does it matter for RAG?",
+        "errors": [
+          "sources[0] cites (MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx, page 8) not in evidence",
+          "sources[1] cites (MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx, page 10) not in evidence",
+          "sources[2] cites (MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx, page 13) not in evidence"
+        ]
+      },
+      {
+        "question": "How do quantization and fine-tuning compare as ways to optimize an LLM?",
+        "errors": [
+          "sources[0] cites (MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx, page 15) not in evidence",
+          "sources[1] cites (MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx, page 16) not in evidence",
+          "sources[2] cites (MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx, page 13) not in evidence"
+        ]
+      }
+    ]
+  },
+  "results": [
+    {
+      "question": "What is quantization?",
+      "retrieval_count": 5,
+      "retrieved": [
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 15,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 2 - LLM Fundamentals v2__p0015.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 16,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 2 - LLM Fundamentals v2__p0016.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 18,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 2 - LLM Fundamentals v2__p0018.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 3,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0003.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 4 - Serving and Debugging v4",
+          "doc_title": "MBAX 6418 - Week 4 - Serving and Debugging v4.pptx",
+          "page_no": 17,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 4 - Serving and Debugging v4__p0017.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster. It typically involves reducing the precision of model parameters from 16-bit (e.g., FP16, BF16) to 8-bit (e.g., FP8) or 4-bit (e.g., INT4) without significant accuracy degradation, which significantly reduces the model's file size.",
+      "raw": "{\"answer\": \"Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster. It typically involves reducing the precision of model parameters from 16-bit (e.g., FP16, BF16) to 8-bit (e.g., FP8) or 4-bit (e.g., INT4) without significant accuracy degradation, which significantly reduces the model's file size.\", \"sources\": [{\"doc\": \"MBAX 6418 - Week 2 - LLM Fundamentals v2\", \"page_no\": 15, \"excerpt\": \"Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster\"}]}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2",
+          "page_no": 15,
+          "kind": "slide",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "excerpt": "Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster",
+          "excerpt_chars": 113,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": true,
+          "page_screenshot_available": false,
+          "image_path": "outputs/pages/MBAX 6418 - Week 2 - LLM Fundamentals v2__p0015.png",
+          "excerpt_overlaps_evidence": true
+        }
+      ],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 0,
+      "temperature_used": 0.0,
+      "latency_s": 3.65
+    },
+    {
+      "question": "What does fine-tuning do to a model's weights?",
+      "retrieval_count": 5,
+      "retrieved": [
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 13,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0013.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 7,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0007.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 18,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 2 - LLM Fundamentals v2__p0018.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 6 - Multimodal Generative AI v1",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 11,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 6 - Multimodal Generative AI v1__p0011.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 6 - Multimodal Generative AI v1",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 19,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 6 - Multimodal Generative AI v1__p0019.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "Not found in the provided materials.",
+      "raw": "{\n\"answer\": \"Not found in the provided materials.\",\n\"sources\": []\n}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 1,
+      "temperature_used": 0.0,
+      "latency_s": 8.58
+    },
+    {
+      "question": "What is a context window and why does it matter for RAG?",
+      "retrieval_count": 5,
+      "retrieved": [
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 8,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 2 - LLM Fundamentals v2__p0008.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 10,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0010.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 11,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0011.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 13,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0013.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 5,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0005.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "A context window is the amount of text or information a model can access while generating subsequent tokens, effectively serving as its \"working memory.\" It is measured in tokens and covers both input and output. For RAG, the context window matters because RAG optimizes it by retrieving relevant information from external sources and adding it to the model's context. This allows the model to access recent or private data beyond its training set, grounds responses in verifiable sources, and helps generate accurate answers while reducing hallucinations.",
+      "raw": "{\"answer\": \"A context window is the amount of text or information a model can access while generating subsequent tokens, effectively serving as its \\\"working memory.\\\" It is measured in tokens and covers both input and output. For RAG, the context window matters because RAG optimizes it by retrieving relevant information from external sources and adding it to the model's context. This allows the model to access recent or private data beyond its training set, grounds responses in verifiable sources, and helps generate accurate answers while reducing hallucinations.\", \"sources\": [{\"doc\": \"MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx\", \"page_no\": 8, \"excerpt\": \"how much text (or other information) a model can access while generating subsequent tokens Provides \u201cworking memory,\u201d i.e., how much the model can remember and work with before forgetting Measured in tokens (i.e., text chunks) and referred to as context length or context window\"}, {\"doc\": \"MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx\", \"page_no\": 10, \"excerpt\": \"Retrieval-augmented generation (RAG) retrieves relevant information from documents, databases, and other data sources and adds it to a model\u2019s context to help generate a response to a user\u2019s prompt/question\"}, {\"doc\": \"MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx\", \"page_no\": 13, \"excerpt\": \"RAG optimizes context by supplying relevant information when the model responds\"}]}",
+      "valid": false,
+      "validation_errors": [
+        "sources[0] cites (MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx, page 8) not in evidence",
+        "sources[1] cites (MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx, page 10) not in evidence",
+        "sources[2] cites (MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx, page 13) not in evidence"
+      ],
+      "sources": [
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 8,
+          "kind": null,
+          "doc_title": null,
+          "excerpt": "how much text (or other information) a model can access while generating subsequent tokens Provides \u201cworking memory,\u201d i.e., how much the model can remember and work with before forgetting Measured in tokens (i.e., text chunks) and referred to as context length or context window",
+          "excerpt_chars": 278,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": false,
+          "page_screenshot_available": false,
+          "image_path": "",
+          "excerpt_overlaps_evidence": true
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 10,
+          "kind": null,
+          "doc_title": null,
+          "excerpt": "Retrieval-augmented generation (RAG) retrieves relevant information from documents, databases, and other data sources and adds it to a model\u2019s context to help generate a response to a user\u2019s prompt/question",
+          "excerpt_chars": 206,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": false,
+          "page_screenshot_available": false,
+          "image_path": "",
+          "excerpt_overlaps_evidence": true
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 13,
+          "kind": null,
+          "doc_title": null,
+          "excerpt": "RAG optimizes context by supplying relevant information when the model responds",
+          "excerpt_chars": 79,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": false,
+          "page_screenshot_available": false,
+          "image_path": "",
+          "excerpt_overlaps_evidence": true
+        }
+      ],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 0,
+      "temperature_used": 0.0,
+      "latency_s": 7.72
+    },
+    {
+      "question": "How can a Gradio app be launched so that others can reach it?",
+      "retrieval_count": 5,
+      "retrieved": [
+        {
+          "doc": "MBAX 6418 - Week 4 - Serving and Debugging v4",
+          "doc_title": "MBAX 6418 - Week 4 - Serving and Debugging v4.pptx",
+          "page_no": 7,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 4 - Serving and Debugging v4__p0007.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 4 - Serving and Debugging v4",
+          "doc_title": "MBAX 6418 - Week 4 - Serving and Debugging v4.pptx",
+          "page_no": 8,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 4 - Serving and Debugging v4__p0008.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 4 - Serving and Debugging v4",
+          "doc_title": "MBAX 6418 - Week 4 - Serving and Debugging v4.pptx",
+          "page_no": 6,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 4 - Serving and Debugging v4__p0006.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 4 - Serving and Debugging v4",
+          "doc_title": "MBAX 6418 - Week 4 - Serving and Debugging v4.pptx",
+          "page_no": 5,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 4 - Serving and Debugging v4__p0005.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 4 - Serving and Debugging v4",
+          "doc_title": "MBAX 6418 - Week 4 - Serving and Debugging v4.pptx",
+          "page_no": 4,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 4 - Serving and Debugging v4__p0004.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "To allow others to reach your Gradio app, you can add `share=True` to the `launch()` function. This generates a temporary public link (e.g., on gradio.live). However, you must keep your computer running for others to access it.",
+      "raw": "{\"answer\": \"To allow others to reach your Gradio app, you can add `share=True` to the `launch()` function. This generates a temporary public link (e.g., on gradio.live). However, you must keep your computer running for others to access it.\", \"sources\": [{\"doc\": \"MBAX 6418 - Week 4 - Serving and Debugging v4\", \"page_no\": 7, \"excerpt\": \"Adding share=True to launch() provides a temporary link, e.g., 60de1eaeaeb5f2b135.gradio.live/ You must keep your computer running so others are able to load your app in their browser\"}]}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [
+        {
+          "doc": "MBAX 6418 - Week 4 - Serving and Debugging v4",
+          "page_no": 7,
+          "kind": "slide",
+          "doc_title": "MBAX 6418 - Week 4 - Serving and Debugging v4.pptx",
+          "excerpt": "Adding share=True to launch() provides a temporary link, e.g., 60de1eaeaeb5f2b135.gradio.live/ You must keep your computer running so others are able to load your app in their browser",
+          "excerpt_chars": 183,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": true,
+          "page_screenshot_available": false,
+          "image_path": "outputs/pages/MBAX 6418 - Week 4 - Serving and Debugging v4__p0007.png",
+          "excerpt_overlaps_evidence": true
+        }
+      ],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 0,
+      "temperature_used": 0.0,
+      "latency_s": 2.9
+    },
+    {
+      "question": "How do quantization and fine-tuning compare as ways to optimize an LLM?",
+      "retrieval_count": 5,
+      "retrieved": [
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 15,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 2 - LLM Fundamentals v2__p0015.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 13,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0013.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 16,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 2 - LLM Fundamentals v2__p0016.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 18,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 2 - LLM Fundamentals v2__p0018.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 7,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0007.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "Quantization and fine-tuning are distinct methods for optimizing LLMs. Quantization is a process of scaling and rounding model parameters to make models smaller and potentially faster, which helps reduce hardware requirements and improve inference performance (e.g., reducing a model from 16-bit to 4-bit precision). In contrast, fine-tuning adapts the model itself through additional training.",
+      "raw": "```json\n{\n  \"answer\": \"Quantization and fine-tuning are distinct methods for optimizing LLMs. Quantization is a process of scaling and rounding model parameters to make models smaller and potentially faster, which helps reduce hardware requirements and improve inference performance (e.g., reducing a model from 16-bit to 4-bit precision). In contrast, fine-tuning adapts the model itself through additional training.\",\n  \"sources\": [\n    {\n      \"doc\": \"MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx\",\n      \"page_no\": 15,\n      \"excerpt\": \"Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster\"\n    },\n    {\n      \"doc\": \"MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx\",\n      \"page_no\": 16,\n      \"excerpt\": \"Various quantization formats exist to help reduce hardware requirements and improve inference performance\"\n    },\n    {\n      \"doc\": \"MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx\",\n      \"page_no\": 13,\n      \"excerpt\": \"Fine-tuning adapts the model itself through additional training\"\n    }\n  ]\n}\n```",
+      "valid": false,
+      "validation_errors": [
+        "sources[0] cites (MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx, page 15) not in evidence",
+        "sources[1] cites (MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx, page 16) not in evidence",
+        "sources[2] cites (MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx, page 13) not in evidence"
+      ],
+      "sources": [
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 15,
+          "kind": null,
+          "doc_title": null,
+          "excerpt": "Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster",
+          "excerpt_chars": 113,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": false,
+          "page_screenshot_available": false,
+          "image_path": "",
+          "excerpt_overlaps_evidence": true
+        },
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 16,
+          "kind": null,
+          "doc_title": null,
+          "excerpt": "Various quantization formats exist to help reduce hardware requirements and improve inference performance",
+          "excerpt_chars": 105,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": false,
+          "page_screenshot_available": false,
+          "image_path": "",
+          "excerpt_overlaps_evidence": true
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 13,
+          "kind": null,
+          "doc_title": null,
+          "excerpt": "Fine-tuning adapts the model itself through additional training",
+          "excerpt_chars": 63,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": false,
+          "page_screenshot_available": false,
+          "image_path": "",
+          "excerpt_overlaps_evidence": true
+        }
+      ],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 1,
+      "temperature_used": 0.0,
+      "latency_s": 5.43
+    },
+    {
+      "question": "What are the main components of a retrieval-augmented generation system?",
+      "retrieval_count": 5,
+      "retrieved": [
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 10,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0010.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 9,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0009.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 2,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0002.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 13,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0013.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 11,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0011.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "Not found in the provided materials.",
+      "raw": "{\"answer\": \"Not found in the provided materials.\", \"sources\": []}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 0,
+      "temperature_used": 0.0,
+      "latency_s": 2.42
+    },
+    {
+      "question": "Find the meme about Vibe Coding on 'Prod' in the Week 2 slides and summarize what its image and text show.",
+      "retrieval_count": 5,
+      "retrieved": [
+        {
+          "doc": "MBAX 6418 Assignment 2",
+          "doc_title": "MBAX 6418 Assignment 2.pdf",
+          "page_no": 3,
+          "kind": "page",
+          "image_path": "outputs/pages/MBAX 6418 Assignment 2__p0003.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 33,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 2 - LLM Fundamentals v2__p0033.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 29,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 2 - LLM Fundamentals v2__p0029.png"
+        },
+        {
+          "doc": "MBAX 6418 Assignment 2",
+          "doc_title": "MBAX 6418 Assignment 2.pdf",
+          "page_no": 2,
+          "kind": "page",
+          "image_path": "outputs/pages/MBAX 6418 Assignment 2__p0002.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 7,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0007.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "Not found in the provided materials.",
+      "raw": "{\n\"answer\": \"Not found in the provided materials.\",\n\"sources\": []\n}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 1,
+      "temperature_used": 0.0,
+      "latency_s": 6.71
+    },
+    {
+      "question": "Describe the RAG pipeline as it is shown in the diagram.",
+      "retrieval_count": 5,
+      "retrieved": [
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 18,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0018.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 10,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0010.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 9,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0009.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 13,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0013.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 11,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0011.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "The diagram illustrates a Hybrid RAG Pipeline with Reranking. The process begins with RAG using information from prepared documents to help an LLM answer the user's question. Next, the Retrieval step finds relevant candidate chunks using both keyword search and vector search. Finally, Reranking compares these candidates to the original question and prioritizes which chunks are supplied to the LLM as context.",
+      "raw": "{\"answer\": \"The diagram illustrates a Hybrid RAG Pipeline with Reranking. The process begins with RAG using information from prepared documents to help an LLM answer the user's question. Next, the Retrieval step finds relevant candidate chunks using both keyword search and vector search. Finally, Reranking compares these candidates to the original question and prioritizes which chunks are supplied to the LLM as context.\", \"sources\": [{\"doc\": \"MBAX 6418 - Week 5 - Context Engineering and RAG v1\", \"page_no\": 18, \"excerpt\": \"RAG uses information from prepared documents to help an LLM answer the user\u2019s question Retrieval finds relevant candidate chunks using both keyword search and vector search in Hybrid RAG Reranking compares these candidates to the original question and prioritizes which chunks are supplied to the LLM as context\"}]}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "page_no": 18,
+          "kind": "slide",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "excerpt": "RAG uses information from prepared documents to help an LLM answer the user\u2019s question Retrieval finds relevant candidate chunks using both keyword search and vector search in Hybrid RAG Reranking compares these candidates to the original question and prioritizes which chunks are supplied to the LLM as context",
+          "excerpt_chars": 311,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": true,
+          "page_screenshot_available": false,
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0018.png",
+          "excerpt_overlaps_evidence": true
+        }
+      ],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 0,
+      "temperature_used": 0.0,
+      "latency_s": 8.03
+    },
+    {
+      "question": "What is the capital of France?",
+      "retrieval_count": 5,
+      "retrieved": [
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 8,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0008.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 2 - LLM Fundamentals v2",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 28,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 2 - LLM Fundamentals v2__p0028.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 17,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0017.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 6 - Multimodal Generative AI v1",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 11,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 6 - Multimodal Generative AI v1__p0011.png"
+        },
+        {
+          "doc": "MBAX 6418 Assignment 2",
+          "doc_title": "MBAX 6418 Assignment 2.pdf",
+          "page_no": 4,
+          "kind": "page",
+          "image_path": "outputs/pages/MBAX 6418 Assignment 2__p0004.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "Not found in the provided materials.",
+      "raw": "{\"answer\": \"Not found in the provided materials.\", \"sources\": []}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 0,
+      "temperature_used": 0.0,
+      "latency_s": 2.76
+    },
+    {
+      "question": "How was this course assistant built?",
+      "retrieval_count": 5,
+      "retrieved": [
+        {
+          "doc": "MBAX 6418 Assignment 2",
+          "doc_title": "MBAX 6418 Assignment 2.pdf",
+          "page_no": 1,
+          "kind": "page",
+          "image_path": "outputs/pages/MBAX 6418 Assignment 2__p0001.png"
+        },
+        {
+          "doc": "MBAX 6418 Assignment 2",
+          "doc_title": "MBAX 6418 Assignment 2.pdf",
+          "page_no": 3,
+          "kind": "page",
+          "image_path": "outputs/pages/MBAX 6418 Assignment 2__p0003.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 1,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0001.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 5 - Context Engineering and RAG v1",
+          "doc_title": "MBAX 6418 - Week 5 - Context Engineering and RAG v1.pptx",
+          "page_no": 1,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 5 - Context Engineering and RAG v1__p0001.png"
+        },
+        {
+          "doc": "MBAX 6418 - Week 6 - Multimodal Generative AI v1",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 1,
+          "kind": "slide",
+          "image_path": "outputs/pages/MBAX 6418 - Week 6 - Multimodal Generative AI v1__p0001.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "The course assistant is built using a coding agent (specifically mentioned as 'Hermes' in the instructions) based on a starter prompt. The goal is to create an assistant that answers questions and generates practice quizzes using course materials, including slides, the syllabus, and other files downloaded from Canvas. The assistant is designed to support PDF and other formats, preserve text and original page/slide images, and answer questions using materials including diagrams and charts. It is also required to acknowledge missing information. The assignment involves a RAG (Retrieval-Augmented Generation) system, where students are asked to compare approaches such as reranking or chunking methods.",
+      "raw": "```json\n{\n  \"answer\": \"The course assistant is built using a coding agent (specifically mentioned as 'Hermes' in the instructions) based on a starter prompt. The goal is to create an assistant that answers questions and generates practice quizzes using course materials, including slides, the syllabus, and other files downloaded from Canvas. The assistant is designed to support PDF and other formats, preserve text and original page/slide images, and answer questions using materials including diagrams and charts. It is also required to acknowledge missing information. The assignment involves a RAG (Retrieval-Augmented Generation) system, where students are asked to compare approaches such as reranking or chunking methods.\",\n  \"sources\": [\n    {\n      \"doc\": \"MBAX 6418 Assignment 2\",\n      \"page_no\": 1,\n      \"excerpt\": \"Build a course assistant that answers questions and generates practice quizzes using course materials. Use slides, the syllabus, and other course files downloaded from Canvas. Support PDF and other formats, explain what the app accepts, and preserve text and original page/slide images. Answer questions using the materials, including diagrams and charts. Acknowledge missing information\"\n    },\n    {\n      \"doc\": \"MBAX 6418 Assignment 2\",\n      \"page_no\": 1,\n      \"excerpt\": \"Using Hermes: After pasting or attaching a prompt, you may need to say: 'Build the app described in this prompt.'\"\n    },\n    {\n      \"doc\": \"MBAX 6418 Assignment 2\",\n      \"page_no\": 3,\n      \"excerpt\": \"Use some of these questions to compare two approaches to one part of your RAG system, such as reranking on versus off or two chunking methods.\"\n    }\n  ]\n}\n```",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [
+        {
+          "doc": "MBAX 6418 Assignment 2",
+          "page_no": 1,
+          "kind": "page",
+          "doc_title": "MBAX 6418 Assignment 2.pdf",
+          "excerpt": "Build a course assistant that answers questions and generates practice quizzes using course materials. Use slides, the syllabus, and other course files downloaded from Canvas. Support PDF and other formats, explain what the app accepts, and preserve text and original page/slide images. Answer questions using the materials, including diagrams and charts. Acknowledge missing information",
+          "excerpt_chars": 387,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": true,
+          "page_screenshot_available": false,
+          "image_path": "outputs/pages/MBAX 6418 Assignment 2__p0001.png",
+          "excerpt_overlaps_evidence": true
+        },
+        {
+          "doc": "MBAX 6418 Assignment 2",
+          "page_no": 1,
+          "kind": "page",
+          "doc_title": "MBAX 6418 Assignment 2.pdf",
+          "excerpt": "Using Hermes: After pasting or attaching a prompt, you may need to say: 'Build the app described in this prompt.'",
+          "excerpt_chars": 113,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": true,
+          "page_screenshot_available": false,
+          "image_path": "outputs/pages/MBAX 6418 Assignment 2__p0001.png",
+          "excerpt_overlaps_evidence": true
+        },
+        {
+          "doc": "MBAX 6418 Assignment 2",
+          "page_no": 3,
+          "kind": "page",
+          "doc_title": "MBAX 6418 Assignment 2.pdf",
+          "excerpt": "Use some of these questions to compare two approaches to one part of your RAG system, such as reranking on versus off or two chunking methods.",
+          "excerpt_chars": 142,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": true,
+          "page_screenshot_available": false,
+          "image_path": "outputs/pages/MBAX 6418 Assignment 2__p0003.png",
+          "excerpt_overlaps_evidence": true
+        }
+      ],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 1,
+      "temperature_used": 0.0,
+      "latency_s": 7.07
+    }
+  ]
+}

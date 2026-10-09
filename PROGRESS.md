@@ -256,3 +256,37 @@ Task branch `4-grounded-qa-answer-sources-as-validated-structured-output-vision-
 **Verified by:** `python -m pytest -q` (84 passed, 4 skipped), CLI smoke (`--list-defaults`; offline run exits 2 with a readable message).
 **Not yet done (honest):** the LIVE eval against the class endpoints (chat/embeddings/rerank) — `.env` with the class key is required; this machine has none. Once `.env` + course documents are in the library, run `python -m src.eval_qa` and commit the results file.
 
+---
+
+## Step 9 — Eval set aligned to assignment spec + rerank comparison harness (2026-10-08)
+
+Read the full assignment text (MBAX 6418 Assignment 2) and aligned the harness to its explicit requirements.
+
+**Done:**
+- `DEFAULT_EVAL_SET` trimmed to **10 questions** (assignment says 5–10): text-grounded (quantization, fine-tuning, context window, Gradio), multi-source (optimization comparison, RAG components), **≥2 visual questions incl. the Week 2 "Vibe Coding on 'Prod'" meme** (the assignment's explicit "try it" check), **1 unanswerable honesty probe** (capital of France), 1 thin-evidence probe. Eval-set spec enforced by a test.
+- **Design comparison: `compare_rerank()` + `--compare-rerank`** — runs the SAME eval set twice (reranker ON vs OFF), records per question whether the answer is schema+support valid, how many sources it cited, and latency (assignment: "record whether each answer is correct, whether its sources support it, and how long it takes"); answer correctness is flagged as a manual judgment (README). Combined output saved to `outputs/findings/grounded_qa_compare_rerank_{ts}.json` (+ `_latest.json`) with side-by-side rows and per-side summaries. This gives the team the instrument for the required "compare two approaches" report (rerank on/off is the planned step 7 comparison).
+- `run_eval(..., write_results=False)` internal switch so the comparison run writes one combined file.
+- Tests +3 (eval-set spec, comparison hermetic with rerank toggling observed, per-side failure recording). Full suite: **87 passed, 4 skipped**.
+
+**Verified by:** `python -m pytest -q` (87 passed, 4 skipped), `--list-defaults` shows the 10-question set.
+**Not yet done (honest):** live run of the eval set and the rerank comparison (needs `.env` endpoint keys + library documents); then the README question-set/comparison/findings report.
+
+---
+
+## Step 10 — LIVE evaluation: real endpoints, real library (2026-10-08)
+
+Full live run on Savannah's machine with the class endpoints configured (chat 9001, text embed 9002, reranker 9004; visual embed 9003 down during the run — visual-vector leg skipped honestly).
+
+**Done:**
+- Wired `.env` with the class config (gitignored; keys never committed/printed).
+- **Fixed a fresh-machine bug found live:** `build_vector_indexes` upserted only the LAST embedding batch (`embeddings=vecs if len(batch)==len(ids) else None`), so multi-batch corpora silently created Chroma collections with the built-in 384-dim embedder → every vector query crashed ("expecting 384, got 2048") on a fresh machine (Sneha's single-batch library never hit it). Now upserts the full vector set; regression-tested (`tests/test_vector_indexes.py`).
+- **Graceful degradation:** `_sync_vector_indexes` no longer requires BOTH endpoints to sync either; a down/unreachable visual-embedding service (9003 was resetting connections) is probed (status-only, 3s) and the visual leg is skipped with a recorded status instead of crashing adds. Same for the `python -m src.indexes` CLI (`--visual skipped` message).
+- **Real library rebuilt:** purged stale manifest/chunks entries that shipped in git (team's index-only records — the app's remove CLI intentionally blocks removing them) after backing up; re-added the 3 real files: Week 2 deck (42 slides), Week 6 deck (20), Syllabus (7) → **69 rendered page/slide images** via the now-installed LibreOffice 26.8.1 (installed from official dmg; no Homebrew on this Mac).
+- **Truncation robustness:** reasoning+vision outputs can be cut mid-JSON → `parse_json_response` gained a repair ladder (clip to last complete value / append closers) and rung 1 of the empty-response ladder now sends `max_tokens=8192` whenever the prompt carries images.
+- **Live eval (10 questions, temperature 0, TOP_K_FINAL=8):** `outputs/findings/grounded_qa_eval_live_k8_20261008.json` → **9/10 schema+support valid**. Answers: quantization (week 2 p15, 5.4s), quant-vs-finetuning comparison (grounded week 2 p15, 20s), **Vibe Coding meme answered FROM the slide image** (Boromir meme cited week 2 p33; direct image-only check: model identified the meme + Agentic Coding contrast on the retrieved slide — the assignment's "try it" case), 6 honest refusals (5 legitimately absent from the honest 3-doc corpus: gradio/RAG components/diagram/assignment-built/France + 1 fine-tuning false negative), 1 flaky truncation (passed on rerun). Vision path used on 9/10 questions (8 images sent each). Fallback ladder fired once (retry + headroom) with no total failures on rerun.
+- **Design comparison (assignment A/B requirement):** `TOP_K_FINAL=8 python -m src.eval_qa --compare-rerank` → **10/10 valid with rerank ON and 10/10 OFF**; rerank adds ~1–7s/question (ON avg 8.9s vs OFF 7.0s) but did not change validity on this corpus → keep rerank for robustness on larger libraries, documented for the README report. Saved: `outputs/findings/grounded_qa_compare_rerank_latest.json`.
+- Full suite: **94 passed, 4 skipped** (was 87; +7: vector-index regression ×4, truncation repair ×2, vision-budget ladder ×1).
+
+**Verified by:** live endpoint probes (status codes only), live eval + comparison JSONs with per-question source audits, `find outputs/pages | wc -l` = 69, `python -m pytest -q` (94 passed).
+**Limitations (honest):** visual-embedding endpoint (9003) was down during the run → no visual-vector retrieval leg (diagram question answered from week-5-style content only where present; honest refusal otherwise); fine-tuning false-negative; comparison corpus is small (3 docs) so rerank ON/OFF differences are subtle; router-metrics: one question needed the fallback ladder.
+

@@ -1,0 +1,872 @@
+{
+  "task": "4-grounded-qa-answer-sources-as-validated-structured-output-vision-capable-no-invented-citations",
+  "run_at": "2026-10-08T21:56:22+00:00",
+  "temperature": 0.0,
+  "include_images": true,
+  "use_rerank": true,
+  "n_questions": 10,
+  "summary": {
+    "n_questions": 10,
+    "conducted": 10,
+    "not_conducted": 0,
+    "schema_valid": 9,
+    "valid_ratio": 0.9,
+    "honest_refusals": 6,
+    "with_sources": 3,
+    "vision_path_used": 9,
+    "ladder_used": 1,
+    "ladder_exhausted": 1,
+    "failures": [
+      {
+        "question": "What is a context window and why does it matter for RAG?",
+        "errors": [
+          "empty-response ladder exhausted: no JSON object in model response: '{\\n\"answer\": \"Based on the provided materials, a **context window** (also referred to as context length) is the amount of text (measured in tokens) that a model can access while generating subsequent t'"
+        ]
+      }
+    ]
+  },
+  "results": [
+    {
+      "question": "What is quantization?",
+      "retrieval_count": 8,
+      "retrieved": [
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 15,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0015.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 16,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0016.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 18,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0018.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 27,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0027.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 11,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0011.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 6,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0006.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 4,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0004.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 19,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0019.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster. While many models are trained at 16-bit precision (e.g., FP16, BF16), this can be reduced to 8-bits (e.g., FP8) or 4-bits (e.g., INT4) without significant accuracy degradation. Various quantization formats exist to help reduce hardware requirements and improve inference performance.",
+      "raw": "{\"answer\": \"Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster. While many models are trained at 16-bit precision (e.g., FP16, BF16), this can be reduced to 8-bits (e.g., FP8) or 4-bits (e.g., INT4) without significant accuracy degradation. Various quantization formats exist to help reduce hardware requirements and improve inference performance.\", \"sources\": [{\"doc\": \"mbax_6418_week_2_llm_fundamentals_v2__1af2611e\", \"page_no\": 15, \"excerpt\": \"Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster\"}, {\"doc\": \"mbax_6418_week_2_llm_fundamentals_v2__1af2611e\", \"page_no\": 16, \"excerpt\": \"Various quantization formats exist to help reduce hardware requirements and improve inference performance\"}]}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "page_no": 15,
+          "kind": "slide",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "excerpt": "Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster",
+          "excerpt_chars": 113,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": true,
+          "page_screenshot_available": true,
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0015.png",
+          "excerpt_overlaps_evidence": true
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "page_no": 16,
+          "kind": "slide",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "excerpt": "Various quantization formats exist to help reduce hardware requirements and improve inference performance",
+          "excerpt_chars": 105,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": true,
+          "page_screenshot_available": true,
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0016.png",
+          "excerpt_overlaps_evidence": true
+        }
+      ],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 8,
+      "temperature_used": 0.0,
+      "latency_s": 5.41
+    },
+    {
+      "question": "What does fine-tuning do to a model's weights?",
+      "retrieval_count": 8,
+      "retrieved": [
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 15,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0015.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 7,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0007.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 18,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0018.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 11,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0011.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 13,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0013.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 19,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0019.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 25,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0025.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 6,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0006.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "Not found in the provided materials.",
+      "raw": "{\"answer\": \"Not found in the provided materials.\", \"sources\": []}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 8,
+      "temperature_used": 0.0,
+      "latency_s": 4.51
+    },
+    {
+      "question": "What is a context window and why does it matter for RAG?",
+      "retrieval_count": 8,
+      "retrieved": [
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 8,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0008.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 9,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0009.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 7,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0007.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 23,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0023.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 7,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0007.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 11,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0011.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 6,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0006.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 2,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0002.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "",
+      "raw": "",
+      "valid": false,
+      "validation_errors": [
+        "empty-response ladder exhausted: no JSON object in model response: '{\\n\"answer\": \"Based on the provided materials, a **context window** (also referred to as context length) is the amount of text (measured in tokens) that a model can access while generating subsequent t'"
+      ],
+      "sources": [],
+      "ladder": {
+        "rungs_used": 3,
+        "retried": true,
+        "images_stripped": true
+      },
+      "images_sent": 0,
+      "latency_s": 32.99
+    },
+    {
+      "question": "How can a Gradio app be launched so that others can reach it?",
+      "retrieval_count": 8,
+      "retrieved": [
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 26,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0026.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 19,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0019.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 2,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0002.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 40,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0040.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 8,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0008.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 2,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0002.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 3,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0003.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 15,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0015.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "Not found in the provided materials.",
+      "raw": "{\"answer\": \"Not found in the provided materials.\", \"sources\": []}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 8,
+      "temperature_used": 0.0,
+      "latency_s": 5.37
+    },
+    {
+      "question": "How do quantization and fine-tuning compare as ways to optimize an LLM?",
+      "retrieval_count": 8,
+      "retrieved": [
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 15,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0015.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 21,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0021.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 18,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0018.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 7,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0007.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 11,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0011.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 1,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0001.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 4,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0004.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 25,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0025.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "The provided materials do not explicitly compare quantization and fine-tuning. However, they describe quantization as a process for scaling and rounding model parameters to make models smaller and potentially faster (offering an efficiency/accuracy tradeoff), whereas fine-tuning is described as a method to develop bespoke solutions to business challenges.",
+      "raw": "{\n\"answer\": \"The provided materials do not explicitly compare quantization and fine-tuning. However, they describe quantization as a process for scaling and rounding model parameters to make models smaller and potentially faster (offering an efficiency/accuracy tradeoff), whereas fine-tuning is described as a method to develop bespoke solutions to business challenges.\",\n\"sources\": [\n{\n\"doc\": \"mbax_6418_week_2_llm_fundamentals_v2__1af2611e\",\n\"page_no\": 15,\n\"excerpt\": \"Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster\"\n},\n{\n\"doc\": \"mbax_6418_week_2_llm_fundamentals_v2__1af2611e\",\n\"page_no\": 21,\n\"excerpt\": \"Quantized models offer an efficiency/accuracy tradeoff\"\n},\n{\n\"doc\": \"mbax_6418_syllabus_fall_2026__7b78501b\",\n\"page_no\": 1,\n\"excerpt\": \"Fine-tune models to develop bespoke solutions to business challenges\"\n}\n]\n}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "page_no": 15,
+          "kind": "slide",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "excerpt": "Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster",
+          "excerpt_chars": 113,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": true,
+          "page_screenshot_available": true,
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0015.png",
+          "excerpt_overlaps_evidence": true
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "page_no": 21,
+          "kind": "slide",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "excerpt": "Quantized models offer an efficiency/accuracy tradeoff",
+          "excerpt_chars": 54,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": true,
+          "page_screenshot_available": true,
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0021.png",
+          "excerpt_overlaps_evidence": true
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "page_no": 1,
+          "kind": "page",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "excerpt": "Fine-tune models to develop bespoke solutions to business challenges",
+          "excerpt_chars": 68,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": true,
+          "page_screenshot_available": true,
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0001.png",
+          "excerpt_overlaps_evidence": true
+        }
+      ],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 8,
+      "temperature_used": 0.0,
+      "latency_s": 20.02
+    },
+    {
+      "question": "What are the main components of a retrieval-augmented generation system?",
+      "retrieval_count": 8,
+      "retrieved": [
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 11,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0011.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 7,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0007.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 28,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0028.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 37,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0037.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 6,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0006.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 9,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0009.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 13,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0013.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 16,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0016.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "Not found in the provided materials.",
+      "raw": "{\"answer\": \"Not found in the provided materials.\", \"sources\": []}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 8,
+      "temperature_used": 0.0,
+      "latency_s": 5.0
+    },
+    {
+      "question": "Find the meme about Vibe Coding on 'Prod' in the Week 2 slides and summarize what its image and text show.",
+      "retrieval_count": 8,
+      "retrieved": [
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 33,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0033.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 29,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0029.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 7,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0007.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 42,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0042.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 1,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0001.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 6,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0006.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 9,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0009.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 19,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0019.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "The meme features the character Boromir from Lord of the Rings pointing his finger with a serious expression. The text overlaid on the image reads 'ONE DOES NOT SIMPLY VIBE CODE A PRODUCTION-GRADE ENTERPRISE APP', warning against using this casual coding style for serious business applications.",
+      "raw": "{\"answer\": \"The meme features the character Boromir from Lord of the Rings pointing his finger with a serious expression. The text overlaid on the image reads 'ONE DOES NOT SIMPLY VIBE CODE A PRODUCTION-GRADE ENTERPRISE APP', warning against using this casual coding style for serious business applications.\", \"sources\": [{\"doc\": \"mbax_6418_week_2_llm_fundamentals_v2__1af2611e\", \"page_no\": 33, \"excerpt\": \"Vibe Coding on \u201cProd\u201d Sources: https://www.reddit.com/r/vibecoding/comments/1mjy0gn/what_challenges_have_you_run_into_trying_to/\"}]}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "page_no": 33,
+          "kind": "slide",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "excerpt": "Vibe Coding on \u201cProd\u201d Sources: https://www.reddit.com/r/vibecoding/comments/1mjy0gn/what_challenges_have_you_run_into_trying_to/",
+          "excerpt_chars": 128,
+          "excerpt_nonempty": true,
+          "pinned_to_evidence": true,
+          "page_screenshot_available": true,
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0033.png",
+          "excerpt_overlaps_evidence": true
+        }
+      ],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 8,
+      "temperature_used": 0.0,
+      "latency_s": 7.63
+    },
+    {
+      "question": "Describe the RAG pipeline as it is shown in the diagram.",
+      "retrieval_count": 8,
+      "retrieved": [
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 7,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0007.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 7,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0007.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 6,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0006.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 11,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0011.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 9,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0009.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 22,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0022.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 13,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0013.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 19,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0019.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "Not found in the provided materials.",
+      "raw": "{\"answer\": \"Not found in the provided materials.\", \"sources\": []}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 8,
+      "temperature_used": 0.0,
+      "latency_s": 4.83
+    },
+    {
+      "question": "What is the capital of France?",
+      "retrieval_count": 8,
+      "retrieved": [
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 28,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0028.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 11,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0011.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 9,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0009.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 4,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0004.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 4,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0004.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 4,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0004.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 2,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0002.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 19,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0019.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "Not found in the provided materials.",
+      "raw": "{\"answer\": \"Not found in the provided materials.\", \"sources\": []}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 8,
+      "temperature_used": 0.0,
+      "latency_s": 9.1
+    },
+    {
+      "question": "How was this course assistant built?",
+      "retrieval_count": 8,
+      "retrieved": [
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 1,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0001.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 1,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0001.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 1,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0001.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 1,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0001.png"
+        },
+        {
+          "doc": "mbax_6418_syllabus_fall_2026__7b78501b",
+          "doc_title": "MBAX 6418 Syllabus Fall 2026.pdf",
+          "page_no": 2,
+          "kind": "page",
+          "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__7b78501b__p0002.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 28,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0028.png"
+        },
+        {
+          "doc": "mbax_6418_week_6_multimodal_generative_ai_v1__16be4286",
+          "doc_title": "MBAX 6418 - Week 6 - Multimodal Generative AI v1.pptx",
+          "page_no": 13,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_6_multimodal_generative_ai_v1__16be4286__p0013.png"
+        },
+        {
+          "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+          "doc_title": "MBAX 6418 - Week 2 - LLM Fundamentals v2.pptx",
+          "page_no": 41,
+          "kind": "slide",
+          "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0041.png"
+        }
+      ],
+      "conducted": true,
+      "answer": "Not found in the provided materials.",
+      "raw": "{\"answer\": \"Not found in the provided materials.\", \"sources\": []}",
+      "valid": true,
+      "validation_errors": [],
+      "sources": [],
+      "ladder": {
+        "rungs_used": 1,
+        "retried": false,
+        "images_stripped": false
+      },
+      "images_sent": 8,
+      "temperature_used": 0.0,
+      "latency_s": 4.64
+    }
+  ]
+}

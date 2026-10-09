@@ -72,3 +72,54 @@ source-cited explanations. Interactive diagram: `docs/architecture.html`.
 Real keys live only in the local, gitignored `.env` (dummy values in
 `.env.example`). They are never shown in the UI, logs, errors, screenshots,
 docs, or on GitHub.
+
+---
+
+## Grounded QA — evaluation findings (Savannah's task, 2026-10-08)
+
+**What was tested:** the Q&A pipeline on a real corpus (Week 2 deck — 42
+slides, Week 6 deck — 20 slides, Syllabus — 7 pages; all with rendered slide
+images) against the live class services (chat `9001`, text embeddings `9002`,
+reranker `9004`; visual embeddings `9003` was down during the run). A fixed
+10-question set was answered at **temperature 0**, evidence budget 8
+(`TOP_K_FINAL=8`), and every response was validated for schema + source
+support. Full results: `outputs/findings/grounded_qa_eval_live_k8_20261008.json`.
+
+| # | Question | Outcome | Source / note |
+|---|---|---|---|
+| 1 | What is quantization? | ✅ grounded | Week 2 p15–16, 5.4 s |
+| 2 | What does fine-tuning do to a model's weights? | ⚠️ honest refusal | false negative (materials likely cover it) |
+| 3 | Context window & why it matters for RAG | ❌ invalid | model output truncated mid-JSON; passed on rerun (flake, not systemic) |
+| 4 | Launching a Gradio app for others | ⚠️ honest refusal | correctly outside this corpus |
+| 5 | Quantization vs fine-tuning comparison | ✅ grounded | Week 2 p15, 20 s |
+| 6 | Main components of RAG | ⚠️ honest refusal | correctly outside this corpus |
+| 7 | **Vibe Coding "Prod" meme** | ✅ grounded (vision) | identified from the actual slide image, Week 2 p33 |
+| 8 | RAG pipeline diagram | ⚠️ honest refusal | correctly outside this corpus |
+| 9 | Capital of France | ✅ honest refusal | correct "not in materials" behavior |
+| 10 | How was this assistant built? | ⚠️ honest refusal | correctly outside this corpus |
+
+**Summary: 9/10 schema+support valid; 3 grounded answers with verifiable
+sources; 6 honest refusals (5 correct, 1 false negative); vision path sent
+slide images on 9/10 questions.** The one failure was an output-truncation
+flake (the model started a correct answer but got cut off mid-JSON) — the
+fallback ladder ran, and the same question passed on the rerun. Since the
+run, `parse_json_response` gained truncation repair and the vision rung
+sends a larger output budget, so this class of failure is mitigated.
+
+**Design comparison (rerank ON vs OFF):** the same 10 questions, same
+temperature, on the same corpus. Both configurations scored **10/10 valid**;
+rerank ON averaged **8.9 s/question** vs **6.96 s offline**. Reranking did
+not change correctness at this corpus size, but it re-orders low-quality
+candidates ahead of better ones in larger libraries and costs under 2 s on
+average — recommendation: **keep reranking ON**. Full per-question record:
+`outputs/findings/grounded_qa_compare_rerank_latest.json`.
+
+**Honest limitations:** the visual-embedding endpoint (9003) was unreachable
+throughout the run, so the visual-*vector* retrieval leg is untested live
+(the meme/diagram evidence came from text retrieval + slide images sent to
+the vision model). One false negative (fine-tuning). Corpus here is 3 real
+documents; results should be re-checked as the library grows. To reproduce:
+`.env` with class endpoints, `python -m src.library add <files>`, then
+`TOP_K_FINAL=8 python -m src.eval_qa` and
+`TOP_K_FINAL=8 python -m src.eval_qa --compare-rerank`. Test suite: **94
+passed, 4 skipped**.

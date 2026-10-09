@@ -134,14 +134,47 @@ def count_images(messages: list[dict]) -> int:
 
 
 def parse_json_response(text: str) -> dict:
-    """Robustly parse a JSON object out of a model response."""
+    """Robustly parse a JSON object out of a model response.
+
+    Handles plain JSON, fenced blocks, surrounding prose, and truncated
+    output (reasoning models can be cut off mid-JSON): a small repair ladder
+    re-validates progressively trimmed/closed candidates before giving up.
+    """
     text = text.strip()
     if text.startswith("```"):
         text = re.sub(r"^```[a-zA-Z]*\s*|\s*```$", "", text).strip()
-    start, end = text.find("{"), text.rfind("}")
-    if start == -1 or end <= start:
+    start = text.find("{")
+    if start == -1:
         raise ValueError(f"no JSON object in model response: {text[:200]!r}")
-    return json.loads(text[start : end + 1])
+    body = text[start:]
+    # prefer the outermost complete object when a closing brace exists,
+    # otherwise treat everything as an unterminated object (repair below)
+    end = body.rfind("}")
+    candidate = body[: end + 1] if end > 0 else body
+    errors: list[Exception] = []
+    try:
+        return json.loads(candidate)
+    except json.JSONDecodeError as exc:
+        errors.append(exc)
+
+    # 1) mid-string cut: clip at the last complete quoted value and close the
+    #    object (e.g. "...notes.\" came back truncated to "...notes.")
+    last_quote = body.rfind('"')
+    if last_quote > 0:
+        clipped = body[: last_quote + 1]
+        for closer in ("}", '"}'):
+            try:
+                return json.loads(clipped + closer)
+            except json.JSONDecodeError as exc:
+                errors.append(exc)
+    # 2) unclosed object/array braces: append plausible closers
+    for closer in ("}", "]}", '"}]}', '"}]"}'):
+        try:
+            return json.loads(candidate + closer)
+        except json.JSONDecodeError as exc:
+            errors.append(exc)
+    raise ValueError(f"no JSON object in model response: {text[:200]!r} "
+                     f"(parse failed: {errors[-1]!s}")
 
 
 def _significant_tokens(text: str) -> set[str]:
@@ -277,6 +310,10 @@ def _chat_with_ladder(messages: list[dict], no_image_messages: list[dict] | None
 
     for rung, (msgs, big_budget) in enumerate(attempts, start=1):
         kwargs: dict = {"max_tokens": 8192} if big_budget else {}
+        if rung == 1 and count_images(msgs) > 0:
+            # vision+reasoning budgets get tight at the 4096 default: give
+            # image-bearing prompts headroom up front (fewer truncations)
+            kwargs["max_tokens"] = 8192
         if rung > 1:
             retried = True
         if rung >= 3:
