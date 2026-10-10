@@ -54,6 +54,23 @@ button:focus-visible,input:focus-visible,textarea:focus-visible {outline:3px sol
 #quiz-workspace .prose,#quiz-evidence .prose {overflow-wrap:anywhere;white-space:normal;}
 #quiz-workspace label {width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;align-items:flex-start!important;display:block!important;white-space:normal!important;}
 #quiz-workspace label span,#quiz-workspace label p,#quiz-workspace label div {min-width:0!important;white-space:normal!important;overflow-wrap:anywhere!important;overflow:visible!important;display:block!important;}
+#quiz-workspace label span {display:inline!important;} /* text next to the circle, still wraps */
+/* Hide Gradio's transient queue/status chrome ("processing | N/Ns") inside the workspace. */
+#quiz-workspace [data-testid="status-tracker"],
+#quiz-workspace .progress-text {display:none!important;}
+/* Tighten quiz layout: questions start right under the workspace start line. */
+#quiz-workspace {gap:10px!important;}
+#quiz-workspace > .block.panel-title {padding:0!important;}
+#quiz-workspace > .block:nth-child(2) {margin-top:-10px!important;} /* title flush under the heading */
+#quiz-workspace > .block.panel-title :is(h1,h2,h3,h4) {margin:2px 0!important;}
+#quiz-workspace .prose {margin:0!important;}
+#quiz-workspace .prose h3 {margin:2px 0 4px 0!important;}
+#quiz-workspace .prose p,#quiz-workspace .prose small {margin:0 0 4px 0!important;}
+#quiz-workspace .block {margin:0!important;padding-top:4px!important;}
+#quiz-workspace .form fieldset {padding:2px 0!important;}
+#quiz-workspace .block [data-testid="block-info"] {margin:0!important;padding:2px 0!important;line-height:1.35!important;}
+#quiz-workspace .form .wrap {padding-top:0!important;gap:2px!important;}
+#quiz-workspace label {margin:0!important;padding:3px 2px!important;min-height:0!important;line-height:1.35!important;}
 #quiz-workspace input[type=radio] {flex-shrink:0;margin-top:4px;}
 /* Gradio's radio option containers often clamp height/width — override aggressively. */
 #quiz-workspace .wrap {overflow:visible!important;white-space:normal!important;}

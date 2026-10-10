@@ -33,6 +33,53 @@ from src import config, library, qa, quiz, retrieve
 MAX_QUESTIONS = 5
 _QUIZ_STORE: dict[str, dict] = {}  # server-side only: key never leaves here
 
+# A single, self-contained "Generating Quiz..." indicator rendered INSIDE the
+# quiz workspace. Gradio's own progress bars accumulate duplicates on repeat
+# clicks, so this flow avoids gr.Progress entirely.
+_QUIZ_LOADING_HTML = """
+<style>
+@keyframes quizProgress {
+  from { transform: translateX(-10%); }
+  to   { transform: translateX(200%); }
+}
+</style>
+<div style="width:100%; text-align:center; padding:18px 0;">
+  <div style="font-size:15px; color:#94a3b8;">Generating Quiz...</div>
+  <div style="width:min(360px, 80%); margin:12px auto 0; height:8px; border-radius:999px;
+              background:rgba(148,163,184,0.18); overflow:hidden;">
+    <div style="width:36%; height:100%; border-radius:999px;
+                background:linear-gradient(90deg,#22d3ee,#34d399);
+                animation:quizProgress 1.1s ease-in-out infinite alternate;">
+    </div>
+  </div>
+</div>
+"""
+
+# Quiz layout rules, delivered INSIDE every quiz workspace update. Gradio's
+# Markdown sanitizer strips <style> tags and page-head CSS only applies to
+# tabs loaded after the last restart, so the workspace uses gr.HTML and these
+# rules travel with each generation - a stale tab always renders the same
+# compact layout. Scoped to #quiz-workspace so nothing leaks to other tabs.
+_QUIZ_LAYOUT_CSS = """
+#quiz-workspace {gap:10px!important;}
+#quiz-workspace > .block.panel-title {padding:0!important;}
+#quiz-workspace > .block:nth-child(2) {margin-top:-10px!important;} /* title flush under the heading */
+#quiz-workspace > .block.panel-title :is(h1,h2,h3,h4) {margin:2px 0!important;}
+#quiz-workspace .quiz-headline {margin:0 0 2px 0!important;font-size:17px;line-height:1.35;}
+#quiz-workspace .quiz-sub {margin:0 0 2px 0!important;font-size:13px;color:#64748b;}
+#quiz-workspace .prose {margin:0!important;}
+#quiz-workspace .block {margin:0!important;padding-top:4px!important;}
+#quiz-workspace .form fieldset {padding:2px 0!important;}
+#quiz-workspace .block [data-testid="block-info"] {margin:0!important;padding:2px 0!important;line-height:1.35!important;}
+#quiz-workspace .form .wrap {padding-top:0!important;gap:2px!important;}
+#quiz-workspace label {margin:0!important;padding:3px 2px!important;min-height:0!important;line-height:1.35!important;}
+#quiz-workspace label span {display:inline!important;}
+#quiz-workspace [data-testid="status-tracker"],
+#quiz-workspace .progress-text {display:none!important;}
+#quiz-workspace input[type=radio] {flex-shrink:0;margin-top:4px;}
+#quiz-workspace .wrap {overflow:visible!important;white-space:normal!important;}
+"""
+
 
 def _doc_choices() -> list[tuple[str, str]]:
     docs = library.list_documents()
@@ -150,29 +197,24 @@ def answer_qa(question: str, doc_id: str, topic: str, rerank: bool,
 # --------------------------------------------------------------------------- #
 # Quiz tab
 # --------------------------------------------------------------------------- #
-def generate_quiz_ui(material: str, topic: str, n_questions: int,
-                     progress: gr.Progress = gr.Progress()):
+def generate_quiz_ui(material: str, topic: str, n_questions: int):
     radios = [gr.update(visible=False, choices=[]) for _ in range(MAX_QUESTIONS)]
     if not retrieve.endpoint_ready("chat"):
-        return _endpoint_status_md(), *radios, ""
+        return _endpoint_status_md(), *radios, "", gr.update(interactive=True)
     if n_questions < 1 or n_questions > MAX_QUESTIONS:
-        return f"Choose between 1 and {MAX_QUESTIONS} questions.", *radios, ""
+        return f"Choose between 1 and {MAX_QUESTIONS} questions.", *radios, "", gr.update(interactive=True)
 
-    progress(0.1, desc="Selecting chunks from your materials…")
     chunks_path = config.PROJECT_ROOT / "outputs" / "chunks.json"
     chunks = json.loads(chunks_path.read_text(encoding="utf-8")) if chunks_path.exists() else []
     if material:
         selected = [material] if isinstance(material, str) else material
         chunks = [c for c in chunks if c["doc"] in selected]
     if not chunks:
-        return ("No chunks found for the selected material - add documents in the "
-                "Materials tab first."), *radios, ""
+        return (f"No chunks found for the selected material - add documents in the "
+                "Materials tab first."), *radios, "", gr.update(interactive=True)
 
     selected = ([material] if isinstance(material, str) else material) or []
     doc_title = ", ".join(d["title"] for d in library.list_documents() if d["doc_id"] in selected) if selected else "All available materials"
-
-    progress(0.3, desc="Calling the class LLM to write the questions… "
-                       "(this can take a minute or two)")
 
     try:
         qz = quiz.generate_quiz(doc_title, chunks, n_questions, topic=topic)
@@ -181,25 +223,26 @@ def generate_quiz_ui(material: str, topic: str, n_questions: int,
 
         traceback.print_exc()
         return (f"Something went wrong while generating the quiz: {exc} "
-                f"(details in outputs/app.log)."), *radios, ""
+                f"(details in outputs/app.log)."), *radios, "", gr.update(interactive=True)
     _QUIZ_STORE[qz["quiz_id"]] = qz
     view = quiz.to_client_view(qz)
 
-    progress(1.0, desc="Quiz ready")
-    md = [f"### Quiz {view['quiz_id']} — {view['material_title']}"]
+    parts = [f"<style>{_QUIZ_LAYOUT_CSS}</style>",
+             f"<h3 class='quiz-headline'>Quiz {view['quiz_id']} — {view['material_title']}</h3>"]
     if view["topic"]:
-        md.append(f"*topic: {view['topic']}*")
-    for i, qview in enumerate(view["questions"]):
-        md.append(f"**Q{i + 1}.** {qview['question']}")
-    md.append("")
-    md.append("Answer below, then press **Grade quiz**. Solutions are shown only after grading.")
+        parts.append(f"<p class='quiz-sub'>topic: {escape(view['topic'])}</p>")
+    parts.append("<p class='quiz-sub'>(Answer below, then press <strong>Grade quiz</strong>. "
+                 "Solutions are shown only after grading.)</p>")
+    if qz.get("topic_note"):
+        parts.append(f"<p class='quiz-note' style='margin:4px 0 0;font-size:12.5px;"
+                     f"color:#b45309;line-height:1.4;'>{escape(qz['topic_note'])}</p>")
 
     upd = [
         gr.update(visible=True, choices=qview["options"], label=f"Q{i + 1}. {qview['question']}")
         for i, qview in enumerate(view["questions"])
     ]
     upd += [gr.update(visible=False, choices=[]) for _ in range(MAX_QUESTIONS - len(upd))]
-    return "\n\n".join(md), *upd, view["quiz_id"]
+    return "".join(parts), *upd, view["quiz_id"], gr.update(interactive=True)
 
 
 def grade_quiz(quiz_id: str, *radio_values):
@@ -221,7 +264,8 @@ def grade_quiz(quiz_id: str, *radio_values):
     for r in result["details"]:
         mark = "✅" if r["correct"] else "❌"
         md.append(f"{mark} **{r['question']}**  \n"
-                  f"Your answer: {r['your_answer']} · correct option: "
+                  f"Your answer: {r['your_answer'] + 1 if r['your_answer'] is not None else '—'} · "
+                  f"correct option: "
                   f"{qz['questions'][r['id']]['options'][qz['questions'][r['id']]['key']]}  \n"
                   f"*Why:* {r['explanation']}  \n"
                   f"Source: `{r['chunk_ref']}`")
@@ -347,7 +391,7 @@ def build_app() -> gr.Blocks:
             theme_mode = gr.Radio(['Light', 'Dark'], value='Light', label='Appearance', elem_id='theme-mode', scale=0, min_width=210)
         demo.load(fn=None, outputs=theme_mode, js=THEME_JS)
         theme_mode.change(fn=None, inputs=theme_mode, js=THEME_JS)
-        gr.HTML('<header class="course-header"><div><div class="eyebrow">A clearer path to understanding</div><h1>Your course. In focus.</h1><p>Ask with context. Study with evidence. Practice at your pace.</p></div><span class="pill">Local workspace · Mountain v2</span></header>')
+        gr.HTML('<header class="course-header"><div><div class="eyebrow">A clearer path to understanding</div><h1>Your course. In focus.</h1><p>Ask with context. Study with evidence. Practice at your pace.</p></div></header>')
         overview = gr.HTML(library_overview())
         with gr.Tab('Q&A'):
             with gr.Row(elem_classes='workspace'):
@@ -384,7 +428,7 @@ def build_app() -> gr.Blocks:
                     gr.Markdown('Choose one answer per question. Solutions stay server-side until grading.', elem_classes='hint')
                 with gr.Column(scale=3, min_width=360, elem_classes='dashboard-card', elem_id='quiz-workspace'):
                     gr.Markdown('### Practice workspace', elem_classes='panel-title')
-                    quiz_view = gr.Markdown('A little practice goes a long way. Choose your focus, then create a quiz.')
+                    quiz_view = gr.HTML('A little practice goes a long way. Choose your focus, then create a quiz.')
                     radios = [gr.Radio(label=f'Q{i + 1}', visible=False, interactive=True) for i in range(MAX_QUESTIONS)]
                     quiz_id = gr.State('')
                     grade = gr.Button('Grade quiz', variant='primary')
@@ -405,12 +449,26 @@ def build_app() -> gr.Blocks:
                     remove = gr.Button('Remove selected document')
                     status = gr.Textbox(label='Library status', lines=4, interactive=False)
                     gr.Markdown('PDF text and PPTX are parsed, rendered and indexed by the course backend. Identical content is added only once. PPTX rendering requires LibreOffice; otherwise export to PDF first. Removing a document deletes its stored original, text, images and index entries.', elem_classes='hint')
-        gr.Markdown('Course Assistant · Mountain v2 · Check supporting evidence. Practice is not a graded assessment.', elem_classes='hint', elem_id='app-footnote')
+        gr.Markdown('Course Assistant · Check supporting evidence. Practice is not a graded assessment.', elem_classes='hint', elem_id='app-footnote')
         qa_inputs = [question, qa_material, qa_topic, qa_rerank, qa_images]
         ask.click(answer_dashboard, qa_inputs, [answer, evidence, gallery], api_name='ask')
         question.submit(answer_dashboard, qa_inputs, [answer, evidence, gallery], api_name=False)
         clear.click(lambda: ('', 'Ready for a new question.', 'Supporting passages appear here after a grounded answer.', []), outputs=[question, answer, evidence, gallery], api_name=False)
-        create.click(generate_quiz_ui, [quiz_material, quiz_topic, quiz_n], [quiz_view, *radios, quiz_id], api_name='create_quiz')
+        # single click chain: first event blanks the workspace (markdown AND
+        # any previous quiz's radio options) and shows ONE custom
+        # "Generating Quiz..." bar; the second generates. gr.Progress is
+        # deliberately not used - it stacked duplicate bars on repeat clicks.
+        # The button is disabled while a generation is in flight so repeated
+        # clicks can never interleave two generations.
+        create.click(
+            lambda: (_QUIZ_LOADING_HTML,
+                     *[gr.update(visible=False, choices=[]) for _ in range(MAX_QUESTIONS)],
+                     gr.update(interactive=False)),
+            outputs=[quiz_view, *radios, create],
+            show_progress='hidden', api_name=None).then(
+            generate_quiz_ui, [quiz_material, quiz_topic, quiz_n],
+            [quiz_view, *radios, quiz_id, create], api_name='create_quiz',
+            show_progress='hidden')
         grade.click(grade_quiz, [quiz_id, *radios], result, api_name='grade_quiz')
         library_outputs = [doc_dropdown, qa_material, quiz_material, overview, inventory]
         save.click(upload_dashboard, upload, [status, *library_outputs], api_name='save_materials')
