@@ -265,3 +265,19 @@ def test_real_gradio_client_payload_never_contains_quiz_key_before_submit(tmp_pa
         assert 'PRIVATE-TEST-EXPLANATION' in repr(result)
     finally:
         app.close()
+
+
+def test_new_quiz_clears_previous_quiz_state():
+    """Requesting a new quiz drops stored quizzes immediately: a failed
+    generation must never leave the previous quiz available for grading,
+    and the review column resets along with the active quiz id."""
+    from src import app as module
+    module._QUIZ_STORE["stale-quiz"] = {"quiz_id": "stale-quiz", "primary_key": [0]}
+    loading, *radios, quiz_id_value, result_text, _ = module.reset_quiz_workspace()
+    assert module._QUIZ_STORE == {}
+    assert quiz_id_value == ""
+    assert "Generating Quiz" in loading
+    assert len(radios) == module.MAX_QUESTIONS
+    # The review column returns to its neutral placeholder: the previous
+    # quiz's score/explanations/source references are gone.
+    assert result_text == module._QUIZ_PLACEHOLDER
