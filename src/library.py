@@ -72,14 +72,42 @@ def _refresh_chunks_and_bm25(pages: list[dict], out_dir: Path) -> dict:
     return {"chunks": len(chunks)}
 
 
+def _endpoint_reachable(base_url: str, api_key: str, timeout: float = 3.0) -> bool:
+    """True when a class service answers /models at all (status-only probe,
+    no secrets, short timeout so a down port stalls nothing)."""
+    import httpx
+
+    try:
+        resp = httpx.get(base_url.rstrip("/") + "/models",
+                         headers={"Authorization": f"Bearer {api_key}"},
+                         timeout=timeout)
+        return resp.status_code < 500  # any HTTP answer = service is alive
+    except Exception:
+        return False
+
+
 def _sync_vector_indexes(chunks: list[dict], pages: list[dict], out_dir: Path) -> dict:
-    """Synchronize ChromaDB text + visual indexes (requires class endpoints)."""
+    """Synchronize ChromaDB text + visual indexes (requires class endpoints).
+
+    Text vectors require the text-embedding endpoint; the visual collection
+    is built only when the visual-embedding endpoint is configured AND
+    reachable - a failed sync is recorded (never fatal), and the app keeps
+    answering from BM25 + whichever legs remain.
+    """
     out_dir = Path(out_dir)
     try:
         config.require_endpoint("text_embed")
-        config.require_endpoint("visual_embed")
     except RuntimeError as exc:
         return {"status": "skipped", "reason": str(exc)}
+
+    visual_ready = True
+    try:
+        config.require_endpoint("visual_embed")
+    except RuntimeError:
+        visual_ready = False
+    if visual_ready and not _endpoint_reachable(config.VISUAL_EMBED_BASE_URL,
+                                                config.VISUAL_EMBED_API_KEY):
+        visual_ready = False
 
     import numpy as np
 
@@ -95,14 +123,17 @@ def _sync_vector_indexes(chunks: list[dict], pages: list[dict], out_dir: Path) -
         except Exception:
             pass  # collection did not exist yet
     get_text_collection(client)
-    get_visual_collection(client)
+    if visual_ready:
+        get_visual_collection(client)
 
     embed_text = lambda texts: embed_texts(texts).astype(np.float32)
-    embed_image = lambda paths: embed_images(paths).astype(np.float32)
-    # one image per request: the visual endpoint's context budget fits ~5-8KB
-    # JPEGs; batches of larger payloads get rejected with HTTP 400
-    counts = build_vector_indexes(chunks, pages, embed_text, embed_image,
-                                  text_batch_size=64, image_batch_size=1)
+    embed_image = ((lambda paths: embed_images(paths).astype(np.float32))
+                   if visual_ready else None)
+    try:
+        counts = build_vector_indexes(chunks, pages, embed_text, embed_image,
+                                      text_batch_size=64, image_batch_size=1)
+    except Exception as exc:  # noqa: BLE001 - a failed sync must not brick adds
+        return {"status": "error", "reason": str(exc)}
     return {"status": "ok", **counts}
 
 

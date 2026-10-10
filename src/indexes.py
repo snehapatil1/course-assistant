@@ -14,7 +14,10 @@ from pathlib import Path
 import bm25s
 import numpy as np
 
+from collections.abc import Callable
+
 from src.config import INDEXES_DIR, PROJECT_ROOT, RANDOM_SEED
+from src import config
 
 BM25_DIR = INDEXES_DIR / "bm25"
 CHROMA_DIR = INDEXES_DIR / "chroma"
@@ -118,27 +121,32 @@ def get_visual_collection(client) -> "chromadb.Collection":  # noqa: ANN001
 def build_vector_indexes(
     chunks: list[dict],
     pages: list[dict],
-    embed_text: callable,
-    embed_image: callable,
+    embed_text: Callable,
+    embed_image: Callable | None = None,
     text_batch_size: int = 64,
     image_batch_size: int = 16,
 ) -> dict[str, int]:
     """Embed chunks (text) and page images (visual) into two separate
     collections. ``embed_text(texts)->np.ndarray (n,d)`` and
-    ``embed_image(paths)->np.ndarray (n,d)`` are injected callables."""
+    ``embed_image(paths)->np.ndarray (n,d)`` are injected callables;
+    ``embed_image=None`` skips the visual collection entirely (e.g. the
+    visual-embedding endpoint is unavailable). The text collection is upserted
+    with the FULL set of embeddings - passing only the last batch makes Chroma
+    fall back to its built-in 384-dim embedder and breaks every later query.
+    """
     client = get_chroma()
     txt_col = get_text_collection(client)
-    vis_col = get_visual_collection(client)
     rng = np.random.default_rng(RANDOM_SEED)
 
     # --- text collection: one vector per chunk --------------------------------
-    ids, docs, metas = [], [], []
+    ids, docs, metas, embeddings = [], [], [], []
     for b_start in range(0, len(chunks), text_batch_size):
         batch = chunks[b_start : b_start + text_batch_size]
         vecs = embed_text([c["text"] for c in batch])
         for c, v in zip(batch, vecs):
             ids.append(c["chunk_id"])
             docs.append(c["text"])
+            embeddings.append(v.tolist())
             metas.append(
                 {
                     "doc": c["doc"],
@@ -149,34 +157,39 @@ def build_vector_indexes(
                     "chunk_of": c.get("chunk_of", ""),
                 }
             )
-    txt_col.upsert(ids=ids, embeddings=vecs if len(batch) == len(ids) else None, documents=docs, metadatas=metas)
+    if ids:
+        txt_col.upsert(ids=ids, embeddings=embeddings, documents=docs, metadatas=metas)
 
-    # --- visual collection: one vector per page image -------------------------
-    v_ids, v_paths = [], []
-    for p in pages:
-        img = PROJECT_ROOT / p["image_path"]
-        if not img.exists():
-            continue
-        v_ids.append(p["page_id"])
-        v_paths.append(str(img))
-    for b_start in range(0, len(v_paths), image_batch_size):
-        batch_paths = v_paths[b_start : b_start + image_batch_size]
-        vecs = embed_image(batch_paths)
-        if b_start == 0:
-            all_vecs = vecs
-        else:
-            all_vecs = np.concatenate([all_vecs, vecs], axis=0)
-    v_metas = [
-        {
-            "page_id": pid,
-            "doc": next(p2["doc_id"] for p2 in pages if p2["page_id"] == pid),
-            "image_path": next(p2["image_path"] for p2 in pages if p2["page_id"] == pid),
-        }
-        for pid in v_ids
-    ]
-    vis_col.upsert(ids=v_ids, embeddings=all_vecs.tolist(), metadatas=v_metas)
+    # --- visual collection: one vector per page image (optional) --------------
+    visual_vectors = 0
+    if embed_image is not None:
+        vis_col = get_visual_collection(client)
+        v_ids, v_paths = [], []
+        for p in pages:
+            img = PROJECT_ROOT / p["image_path"]
+            if not img.exists():
+                continue
+            v_ids.append(p["page_id"])
+            v_paths.append(str(img))
+        if v_ids:
+            all_vecs: np.ndarray | None = None
+            for b_start in range(0, len(v_paths), image_batch_size):
+                batch_paths = v_paths[b_start : b_start + image_batch_size]
+                vecs = embed_image(batch_paths)
+                all_vecs = vecs if all_vecs is None else np.concatenate([all_vecs, vecs], axis=0)
+            v_metas = [
+                {
+                    "page_id": pid,
+                    "doc": next(p2["doc_id"] for p2 in pages if p2["page_id"] == pid),
+                    "image_path": next(p2["image_path"] for p2 in pages if p2["page_id"] == pid),
+                }
+                for pid in v_ids
+            ]
+            assert all_vecs is not None  # v_ids non-empty -> at least one batch
+            vis_col.upsert(ids=v_ids, embeddings=all_vecs.tolist(), metadatas=v_metas)
+            visual_vectors = len(v_ids)
 
-    return {"text_vectors": len(ids), "visual_vectors": len(v_ids)}
+    return {"text_vectors": len(ids), "visual_vectors": visual_vectors}
 
 
 # --------------------------------------------------------------------------- #
@@ -200,10 +213,32 @@ def main(argv: list[str] | None = None) -> int:
 
     from src.embeddings import embed_images, embed_texts  # requires class endpoints
 
+    import httpx
+
+    def _probe_visual() -> bool:
+        """Status-only reachability probe for the visual-embedding service."""
+        try:
+            resp = httpx.get(
+                config.VISUAL_EMBED_BASE_URL.rstrip("/") + "/models",
+                headers={"Authorization": f"Bearer {config.VISUAL_EMBED_API_KEY}"},
+                timeout=3)
+            return resp.status_code < 500
+        except Exception:
+            return False
+
+    visual_ready = False
+    try:
+        config.require_endpoint("visual_embed")
+        visual_ready = _probe_visual()
+    except RuntimeError:
+        pass
+
     embed_text = lambda texts: embed_texts(texts).astype(np.float32)
-    embed_image = lambda paths: embed_images(paths).astype(np.float32)
+    embed_image = ((lambda paths: embed_images(paths).astype(np.float32))
+                   if visual_ready else None)
     counts = build_vector_indexes(chunks, pages, embed_text, embed_image)
-    print(f"vector indexes: {counts} -> {CHROMA_DIR}")
+    print(f"vector indexes: {counts} -> {CHROMA_DIR}"
+          + ("" if visual_ready else " (visual leg skipped: endpoint unavailable)"))
     return 0
 
 
