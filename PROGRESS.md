@@ -290,3 +290,45 @@ Full live run on Savannah's machine with the class endpoints configured (chat 90
 **Verified by:** live endpoint probes (status codes only), live eval + comparison JSONs with per-question source audits, `find outputs/pages | wc -l` = 69, `python -m pytest -q` (94 passed).
 **Limitations (honest):** visual-embedding endpoint (9003) was down during the run → no visual-vector retrieval leg (diagram question answered from week-5-style content only where present; honest refusal otherwise); fine-tuning false-negative; comparison corpus is small (3 docs) so rerank ON/OFF differences are subtle; router-metrics: one question needed the fallback ladder.
 
+
+## Step (2026-10-08) — Quiz UI layout hardening (sneha, uncommitted)
+- Radio option text now sits BESIDE the circle: quiz option `<span>` forced `display:inline`
+  (was `block` from PR #12's wrap fix, which put text on the line below the circle).
+- Workspace blanking on "Create practice quiz" covered the stale question radios too:
+  click chain's first event now hides markdown AND all 5 radio groups; Gradio queue
+  chrome ("processing | N/Ns") hidden via CSS; single custom "Generating Quiz..." bar.
+- Create button is single-flight (disabled while generating, re-enabled in every
+  return path of generate_quiz_ui) so repeated clicks cannot interleave generations.
+- Compact quiz layout: column gap 10px, fieldset padding 2px, option rows 28px,
+  question groups 138px apart (was 199-218px), heading→Q1 78px (was ~115px).
+- Verified in-browser across repeated + rapid runs: identical geometry every run,
+  radios 0 during generation, 12 after; full-page screenshot compact_run2.png.
+- Stale-tab root cause: CSS in the page <head> only applies to tabs loaded AFTER a
+  restart; Gradio Markdown strips <style> tags (verified: styles:0 mid-loading).
+  The user's long-lived tab kept the old airy layout no matter the server fixes.
+- FINAL FIX: quiz_view switched gr.Markdown -> gr.HTML (no sanitization); every quiz
+  generation ships _QUIZ_LAYOUT_CSS inside the update (scoped to #quiz-workspace:
+  gap 10px, title margin 0, fieldset 2px, option rows 28px, span inline, queue chrome
+  hidden). Stale tabs get the compact layout on the next click - no reload needed.
+- Loading indicator also gr.HTML -> its @keyframes now actually run (was stripped).
+- Verified 3 consecutive generations: headBottom->title 16px, title->Q1 39px,
+  Q1..Q3 separations 139/138 (uniform), text beside circle; identical run-to-run.
+- Companion test updated for new return shape (test_mountain_integration.py);
+  17 passed in quiz+mountain suites.
+## Step (2026-10-08) — Quiz topic now drives chunk selection (sneha, uncommitted)
+- Bug: topic was only a prompt hint; chunks fed to the model were the first
+  max(8, n*3) in page order -> PPT5 + topic=quantization produced an unrelated
+  LITM question (week-5 content, no quantization anywhere in the window).
+- Fix (src/quiz.py): select_topic_chunks() ranks material-filtered chunks by
+  keyword relevance (words + 2-grams, stopword-filtered, phrase x2 bonus),
+  deterministic/endpoint-free (reproducibility: temp 0 + same inputs -> same
+  quiz). Top-k window leads with topic hits; chunk_ref mapping + validation
+  still use the ranked list; full chunk-id set unchanged.
+- Honesty: when the topic has no hits in the selected material, the quiz
+  carries topic_note ("not covered ... closest available blocks") shown in
+  amber in the quiz header; the prompt also says questions MUST concern the
+  topic. Prompt now names the topic explicitly.
+- Tests: 5 new (ranking, phrase bonus, no-hits, empty-topic order, prompt
+  focus); suite 22 passed quiz+mountain. Live E2E: All materials + topic
+  quantization -> Q1-Q3 all quantization (purpose, Qwen file size, M-chip
+  format). UI shows "topic: quantization" line.

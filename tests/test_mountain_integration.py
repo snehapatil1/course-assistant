@@ -37,7 +37,8 @@ def test_empty_library_quiz_is_readable_not_file_error(tmp_path, monkeypatch):
     monkeypatch.setattr(app.retrieve, 'endpoint_ready', lambda _: True)
     output = app.generate_quiz_ui('', '', 1)
     assert 'No chunks' in output[0]
-    assert output[-1] == ''
+    assert output[-2] == ''  # quiz id slot
+    assert isinstance(output[-1], dict) and output[-1].get('interactive') is True  # button re-enabled
 
 
 def test_real_client_master_upload_dedupe_remove_and_quiz(tmp_path, monkeypatch, pdf_file):
