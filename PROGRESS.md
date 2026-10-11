@@ -332,3 +332,34 @@ Full live run on Savannah's machine with the class endpoints configured (chat 90
   focus); suite 22 passed quiz+mountain. Live E2E: All materials + topic
   quantization -> Q1-Q3 all quantization (purpose, Qwen file size, M-chip
   format). UI shows "topic: quantization" line.
+
+## Step (2026-10-10) — Grading feedback cites stored source metadata; new quiz resets workspace (Katherine, uncommitted)
+- Gap: grading feedback showed only a bare chunk_ref; identical quiz inputs
+  produced the SAME quiz_id, so a regenerated quiz's stored answer key could
+  silently overwrite the previous one's (explain/sources then mismatched).
+- Fix (src/quiz.py): `generate_quiz` now returns a unique per-generation
+  `quiz_id` (`<fingerprint>-<token>`), a stable `canonical_id`, and a
+  server-side `chunk_map` of stored display metadata (doc_title, kind,
+  page_no, excerpt from STORED chunk text — never a model-generated string).
+  `grade()` resolves each question's `source` from the chunk_map; a missing
+  ref degrades to `{"resolved": False}` and the UI shows an honest fallback.
+  `to_client_view` exposes canonical_id but keeps chunk_map/primary_key/raw
+  server-side.
+- Fix (src/app.py): `reset_quiz_workspace()` runs the instant a new quiz is
+  requested — clears `_QUIZ_STORE` and blanks the workspace, radio groups,
+  active quiz id, AND the review column, so a failed generation can never
+  leave the previous quiz (answer key included) available for grading. The
+  grade feedback now renders `Source: <doc title> · slide/page N` plus a
+  blockquote excerpt; the quiz header shows the stable canonical_id.
+- Tests: 4 new in tests/test_quiz.py (source metadata stored; citations from
+  stored text never model text; unknown ref degrades; ids don't collide) + 1
+  new in tests/test_dashboard.py (new quiz clears previous state); updated
+  stub-chat and client-view tests for canonical_id/chunk_map.
+- Verified by: `pytest tests/test_quiz.py tests/test_dashboard.py -v` (34
+  passed, 2 skipped); full suite `pytest tests/ -q` (108 passed, 4 skipped,
+  11.8s); manual GUI test — quantization quiz graded 3/3 with title + slide +
+  excerpt citations per question, new quiz cleared prior feedback; evidence:
+  outputs/findings/quiz-feedback-citations-verification-2026-10-10.md + 3
+  screenshots in outputs/screenshots/ (OCR-confirmed content).
+- Limitations (honest): failed-generation reset covered by unit test only;
+  branch not yet pushed / no PR; 2 gradio-client tests skipped (pre-existing).

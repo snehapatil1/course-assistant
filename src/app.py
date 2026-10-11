@@ -197,6 +197,24 @@ def answer_qa(question: str, doc_id: str, topic: str, rerank: bool,
 # --------------------------------------------------------------------------- #
 # Quiz tab
 # --------------------------------------------------------------------------- #
+_QUIZ_PLACEHOLDER = ("Your score, explanations, and source references appear "
+                     "after you answer and grade your quiz.")
+
+
+def reset_quiz_workspace():
+    """Blank the quiz workspace and drop every stored quiz.
+
+    Runs the instant a new quiz is requested. Previous answers, radio
+    selections, score/explanations, and the server-side answer key all leave
+    together, so even a failed generation can never leave the previous quiz
+    available for grading.
+    """
+    _QUIZ_STORE.clear()
+    return (_QUIZ_LOADING_HTML,
+            *[gr.update(visible=False, choices=[]) for _ in range(MAX_QUESTIONS)],
+            "", _QUIZ_PLACEHOLDER, gr.update(interactive=False))
+
+
 def generate_quiz_ui(material: str, topic: str, n_questions: int):
     radios = [gr.update(visible=False, choices=[]) for _ in range(MAX_QUESTIONS)]
     if not retrieve.endpoint_ready("chat"):
@@ -228,7 +246,7 @@ def generate_quiz_ui(material: str, topic: str, n_questions: int):
     view = quiz.to_client_view(qz)
 
     parts = [f"<style>{_QUIZ_LAYOUT_CSS}</style>",
-             f"<h3 class='quiz-headline'>Quiz {view['quiz_id']} — {view['material_title']}</h3>"]
+             f"<h3 class='quiz-headline'>Quiz {view.get('canonical_id') or view['quiz_id']} — {view['material_title']}</h3>"]
     if view["topic"]:
         parts.append(f"<p class='quiz-sub'>topic: {escape(view['topic'])}</p>")
     parts.append("<p class='quiz-sub'>(Answer below, then press <strong>Grade quiz</strong>. "
@@ -263,12 +281,22 @@ def grade_quiz(quiz_id: str, *radio_values):
     md = [f"### Score: {result['score']} / {result['total']}"]
     for r in result["details"]:
         mark = "✅" if r["correct"] else "❌"
-        md.append(f"{mark} **{r['question']}**  \n"
-                  f"Your answer: {r['your_answer'] + 1 if r['your_answer'] is not None else '—'} · "
-                  f"correct option: "
-                  f"{qz['questions'][r['id']]['options'][qz['questions'][r['id']]['key']]}  \n"
-                  f"*Why:* {r['explanation']}  \n"
-                  f"Source: `{r['chunk_ref']}`")
+        base = (f"{mark} **{r['question']}**  \n"
+                f"Your answer: {r['your_answer'] + 1 if r['your_answer'] is not None else '—'} · "
+                f"correct option: "
+                f"{qz['questions'][r['id']]['options'][qz['questions'][r['id']]['key']]}  \n"
+                f"*Why:* {r['explanation']}")
+        src = r.get("source") or {}
+        if src.get("resolved"):
+            word = "slide" if src.get("kind") == "slide" else "page"
+            loc = (f"{word} {src['page_no']}" if src.get("page_no") is not None
+                   else f"{word} (unknown number)")
+            cite = f"{src.get('doc_title') or 'Unknown document'} · {loc}"
+            excerpt = src.get("excerpt") or "*(no excerpt available)*"
+            md.append(f"{base}  \n*Source:* {cite}  \n> {excerpt}")
+        else:
+            md.append(f"{base}  \n*Source:* unknown (referenced chunk not found "
+                      "in stored metadata)")
     return "\n\n".join(md)
 
 
@@ -434,7 +462,7 @@ def build_app() -> gr.Blocks:
                     grade = gr.Button('Grade quiz', variant='primary')
                 with gr.Column(scale=1, min_width=220, elem_classes='dashboard-card', elem_id='quiz-evidence'):
                     gr.Markdown('### Review & evidence', elem_classes='panel-title')
-                    result = gr.Markdown('Your score, explanations, and source references appear after you answer and grade your quiz.')
+                    result = gr.Markdown(_QUIZ_PLACEHOLDER)
         with gr.Tab('Course Materials'):
             with gr.Row(elem_classes='workspace'):
                 with gr.Column(scale=1, min_width=260, elem_classes='sidebar'):
@@ -455,16 +483,16 @@ def build_app() -> gr.Blocks:
         question.submit(answer_dashboard, qa_inputs, [answer, evidence, gallery], api_name=False)
         clear.click(lambda: ('', 'Ready for a new question.', 'Supporting passages appear here after a grounded answer.', []), outputs=[question, answer, evidence, gallery], api_name=False)
         # single click chain: first event blanks the workspace (markdown AND
-        # any previous quiz's radio options) and shows ONE custom
-        # "Generating Quiz..." bar; the second generates. gr.Progress is
-        # deliberately not used - it stacked duplicate bars on repeat clicks.
-        # The button is disabled while a generation is in flight so repeated
-        # clicks can never interleave two generations.
+        # any previous quiz's radio options), clears the review column, and
+        # drops every stored quiz - the previous quiz (answer key included)
+        # can never be graded after a new quiz is requested, even if the new
+        # generation fails; then shows ONE custom "Generating Quiz..." bar.
+        # gr.Progress is deliberately not used - it stacked duplicate bars on
+        # repeat clicks. The button is disabled while a generation is in
+        # flight so repeated clicks can never interleave two generations.
         create.click(
-            lambda: (_QUIZ_LOADING_HTML,
-                     *[gr.update(visible=False, choices=[]) for _ in range(MAX_QUESTIONS)],
-                     gr.update(interactive=False)),
-            outputs=[quiz_view, *radios, create],
+            reset_quiz_workspace,
+            outputs=[quiz_view, *radios, quiz_id, result, create],
             show_progress='hidden', api_name=None).then(
             generate_quiz_ui, [quiz_material, quiz_topic, quiz_n],
             [quiz_view, *radios, quiz_id, create], api_name='create_quiz',

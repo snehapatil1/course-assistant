@@ -69,7 +69,8 @@ def test_generate_quiz_stub_chat():
     assert q["primary_key"] == [0, 0]
     assert q["n"] == 2
     assert q["key_sha"] == quiz.key_sha([0, 0])
-    assert q["quiz_id"] == quiz.quiz_id("Deck", "", 2)
+    assert q["canonical_id"] == quiz.quiz_id("Deck", "", 2)
+    assert q["quiz_id"].startswith(quiz.quiz_id("Deck", "", 2) + "-")
 
 
 def test_client_view_hides_solutions():
@@ -77,6 +78,7 @@ def test_client_view_hides_solutions():
     view = quiz.to_client_view(q)
     assert "primary_key" not in view
     assert "raw" not in view
+    assert "chunk_map" not in view
     assert all("explain" not in qv and "chunk_ref" not in qv and "key" not in qv
                for qv in view["questions"])
 
@@ -200,3 +202,60 @@ def test_build_quiz_messages_includes_focus_topic():
     user = msgs[-1]["content"]
     assert "Topic: quantization" in user
     assert "MUST concern this topic" in user
+
+
+# --- Feedback citations resolved from STORED source metadata -------------
+
+
+def test_generate_quiz_stores_source_metadata():
+    q = quiz.generate_quiz("Deck", CHUNKS, 2, chat_fn=lambda msgs: GOOD_RESPONSE)
+    cm = q["chunk_map"]
+    assert cm["deck__p0015__c0001"]["doc_title"] == "Deck"
+    assert cm["deck__p0015__c0001"]["page_no"] == 15
+    assert cm["deck__p0015__c0001"]["kind"] == "page"  # default when unset
+    assert cm["deck__p0015__c0001"]["excerpt"] == "Quantization reduces model size."
+    assert cm["notes__p0002__c0001"]["doc_title"] == "Notes"
+
+
+def test_grading_cites_stored_metadata_never_model_text():
+    """Feedback must show the real title/page and the stored chunk text -
+    never the model's explanation string or an invented location."""
+    q = quiz.generate_quiz("Deck", CHUNKS, 2, chat_fn=lambda msgs: GOOD_RESPONSE)
+    result = quiz.grade(q, {0: 0, 1: 0})
+    src = result["details"][0]["source"]
+    assert src["resolved"] is True
+    assert src["doc_title"] == "Deck"
+    assert src["page_no"] == 15
+    assert src["excerpt"] == "Quantization reduces model size."
+    # The model's explanation says "(slide 15)" but the stored chunk text
+    # does not - citations must come from the stored chunk, never the model.
+    assert "slide 15" not in src["excerpt"]
+
+
+def test_grading_unknown_ref_degrades_without_crashing():
+    stored = {
+        "quiz_id": "x",
+        "material_title": "Deck",
+        "topic": "",
+        "n": 1,
+        "questions": [{"question": "Q?", "options": ["a", "b", "c", "d"], "key": 0,
+                       "explain": "why", "chunk_ref": "ghost__c0001"}],
+        "primary_key": [0],
+        "key_sha": quiz.key_sha([0]),
+        "raw": "{}",
+        "chunk_map": {"deck__p0015__c0001": {"doc_title": "Deck", "kind": "slide",
+                                             "page_no": 15, "excerpt": "x"}},
+    }
+    src = quiz.grade(stored, {0: 1})["details"][0]["source"]
+    assert src == {"resolved": False}
+
+
+def test_generate_quiz_ids_do_not_collide_for_identical_inputs():
+    """Same material/topic/count must still produce distinct quiz ids, so one
+    generated quiz can never overwrite another quiz's stored answer key."""
+    q1 = quiz.generate_quiz("Deck", CHUNKS, 2, chat_fn=lambda msgs: GOOD_RESPONSE)
+    q2 = quiz.generate_quiz("Deck", CHUNKS, 2, chat_fn=lambda msgs: GOOD_RESPONSE)
+    assert q1["quiz_id"] != q2["quiz_id"]
+    store = {q1["quiz_id"]: q1, q2["quiz_id"]: q2}
+    assert store[q1["quiz_id"]]["primary_key"] == [0, 0]
+    assert store[q2["quiz_id"]]["primary_key"] == [0, 0]
