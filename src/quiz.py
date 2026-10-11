@@ -5,12 +5,17 @@ only; clients receive ``to_client_view`` (no key, no explanations). Grading
 happens against the stored key, and explanations/sources are revealed with
 the grade. Key stability is asserted via ``key_sha`` (identical inputs ->
 identical hash) so the key never silently changes between runs.
+Each generated quiz also carries a per-generation unique ``quiz_id`` (identical
+material/topic/count never overwrite a stored answer key) and a server-side
+``chunk_map`` of stored source metadata, so grading feedback cites real
+document titles, slide/page numbers, and supporting excerpts.
 """
 from __future__ import annotations
 
 import hashlib
 import json
 import re
+import secrets
 
 from src import config
 
@@ -181,6 +186,38 @@ def quiz_id(material_title: str, topic: str, n: int) -> str:
     ).hexdigest()[:12]
 
 
+def _excerpt(text: str, limit: int = 300) -> str:
+    """Collapse whitespace and trim a stored chunk's text for display.
+
+    The excerpt must come from the STORED chunk text - never from the model's
+    explanation string - so every quoted support can be traced to the source.
+    """
+    flat = " ".join(str(text).split())
+    if not flat:
+        return ""
+    return flat if len(flat) <= limit else flat[:limit].rstrip() + "…"
+
+
+def build_chunk_map(chunks: list[dict]) -> dict[str, dict]:
+    """Resolve display metadata for every provided chunk, from stored fields.
+
+    The map is stored server-side with the generated quiz so grading can cite
+    the real document title, slide/page number, and an excerpt of the actual
+    chunk text. Missing fields stay empty (never invented) and the UI renders
+    a safe fallback for unresolvable refs.
+    """
+    return {
+        c["chunk_id"]: {
+            "doc_title": str(c.get("doc_title") or ""),
+            "kind": str(c.get("kind") or "page"),
+            "page_no": c.get("page_no"),
+            "excerpt": _excerpt(c.get("text", "")),
+        }
+        for c in chunks
+        if c.get("chunk_id")
+    }
+
+
 def generate_quiz(material_title: str, chunks: list[dict], n: int,
                   topic: str = "", chat_fn=None) -> dict:
     """Generate a quiz from the selected chunks. The key stays server-side.
@@ -188,6 +225,8 @@ def generate_quiz(material_title: str, chunks: list[dict], n: int,
     The model references evidence by short block numbers; refs are mapped to
     canonical chunk ids and validated. One automatic regeneration is attempted
     if the first pass fails validation (models sometimes ignore the labels).
+    Each generated quiz gets a unique ``quiz_id`` plus a server-side
+    ``chunk_map`` of stored source metadata used by ``grade`` for citations.
     """
     if chat_fn is None:
         from src.embeddings import chat as chat_fn
@@ -223,13 +262,21 @@ def generate_quiz(material_title: str, chunks: list[dict], n: int,
             qs = obj.get("questions", [])
             keys = [q["key"] for q in qs]
             return {
-                "quiz_id": quiz_id(material_title, topic, n),
+                # Unique per generation: quiz_id() alone is a deterministic
+                # fingerprint of (material, topic, n), so two quizzes with
+                # identical inputs would collide as store keys and one quiz's
+                # answer key could silently overwrite the other's.
+                "quiz_id": f"{quiz_id(material_title, topic, n)}-{secrets.token_hex(4)}",
+                "canonical_id": quiz_id(material_title, topic, n),
                 "material_title": material_title,
                 "topic": topic,
                 "n": n,
                 "questions": qs,
                 "primary_key": keys,
                 "key_sha": key_sha(keys),
+                # Stored chunk metadata (title/slide/excerpt) for grading
+                # citations; excluded from the client view.
+                "chunk_map": build_chunk_map(chunks),
                 "raw": raw,
                 "topic_note": ("" if topic_covered
                                else (f"The topic '{topic}' is not covered by the "
@@ -244,6 +291,7 @@ def to_client_view(quiz: dict) -> dict:
     """Client-safe view: no key, no explanations, no raw."""
     return {
         "quiz_id": quiz["quiz_id"],
+        "canonical_id": quiz.get("canonical_id", quiz["quiz_id"]),
         "material_title": quiz["material_title"],
         "topic": quiz["topic"],
         "n": quiz["n"],
@@ -256,13 +304,21 @@ def to_client_view(quiz: dict) -> dict:
 
 
 def grade(quiz: dict, answers: dict[int, int]) -> dict:
-    """Grade answers against the stored key; reveal explanations server-side."""
+    """Grade answers against the stored key; reveal explanations server-side.
+
+    Each result's ``source`` is resolved from the chunk_map stored at
+    generation time - the REAL document title, slide/page number, and chunk
+    text - never from the model's explanation string. Unresolvable refs
+    degrade to {"resolved": False} so the UI can render an honest fallback.
+    """
+    chunk_map = quiz.get("chunk_map") or {}
     results = []
     correct = 0
     for i, q in enumerate(quiz["questions"]):
         given = answers.get(i)
         right = given == q["key"]
         correct += int(right)
+        src = chunk_map.get(q["chunk_ref"])
         results.append(
             {
                 "id": i,
@@ -271,6 +327,7 @@ def grade(quiz: dict, answers: dict[int, int]) -> dict:
                 "correct": right,
                 "explanation": q["explain"],
                 "chunk_ref": q["chunk_ref"],
+                "source": ({"resolved": True, **src} if src else {"resolved": False}),
             }
         )
     return {
