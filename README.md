@@ -123,3 +123,57 @@ documents; results should be re-checked as the library grows. To reproduce:
 `TOP_K_FINAL=8 python -m src.eval_qa` and
 `TOP_K_FINAL=8 python -m src.eval_qa --compare-rerank`. Test suite: **94
 passed, 4 skipped**.
+
+---
+
+## Q&A reranking evaluation
+
+A controlled Q&A evaluation used the Week 2, Week 3, and Week 5 decks plus the syllabus. The same ten questions were tested with reranking ON and OFF to compare answer correctness, source support, visual retrieval, and response time. Automated runs recorded the answers, retrieved evidence, validation results, and timing; manual review checked answer correctness, visual evidence, and UI behavior. This evaluation builds on the earlier grounded-QA testing above by using the final four-document test set and working visual embeddings.
+
+**Design:** a frozen 10-question set (syllabus policy, slide text, the
+required Week 2 "Vibe Coding on Prod" meme, an open-models table, the hybrid
+RAG pipeline diagram, and one intentionally unanswerable question about the
+Gradio default port) was run at temperature 0 with slide images enabled, in
+two conditions that differ **only** in the reranking toggle (ON vs OFF).
+
+**Correctness totals (manually verified against the source materials):**
+
+| Condition | Correct | Partial | Incorrect |
+|---|---|---|---|
+| Reranking ON | 8/10 | 1 (Q1) | 1 (Q7) |
+| Reranking OFF | 7/10 | 1 (Q1) | 2 (Q2, Q7) |
+
+**Structured-output/source validation: 10/10 in both conditions.**
+
+**Key findings:**
+
+- **Q2 was the clearest reranking benefit.** Reranking ON promoted Week 2
+  slides 15–16 into the evidence and produced a correct, grounded answer on
+  quantization. With reranking OFF those slides were missed and the app
+  honestly refused — no fabricated answer.
+- Reranking also improved expected-source placement for Q1 and Q3, and no
+  question had better supporting evidence with reranking OFF.
+- **Q7 limitation (investigated, preserved):** neither condition retrieved
+  Week 2 slide 22 (the "Popular Open Coding Models" table), so both runs gave
+  honest refusals. This is a retrieval-recall limitation for that table slide,
+  not a reranker defect.
+- **Timing:** ON mean ≈ 6.4 s/question (median 5.2 s); OFF mean ≈ 9.1 s
+  (median 4.6 s). Q6 OFF recorded 45.23 s in the official run, but a manual
+  diagnostic rerun took ≈ 7 s, so that is treated as a one-off latency spike
+  rather than a systematic OFF slowdown.
+- **Recommendation: keep reranking ON** — it improved answer correctness and
+  evidence ranking without an observed quality regression, at a modest
+  latency overhead.
+
+**UI findings (manual interface testing):** course-material labels are
+excessively long; raw filenames/hashes appear instead of friendly titles; the
+source-evidence icon appears broken; slide/page images are awkwardly cropped
+or zoomed; extra gallery images are not clearly tied to cited sources; Q7
+did not display slide 22, while Q8 displayed slide 33 and Q9 displayed slide
+18 in both conditions.
+
+**Full record:** `outputs/findings/evaluation_plan.md` (completed evaluation
+record with the frozen question set, rubric, results table, and
+interpretation). Raw automated results:
+`outputs/findings/maddie_rerank_comparison_20261010-194347.json` and
+`outputs/findings/maddie_rerank_comparison_latest.json`.

@@ -1,0 +1,1476 @@
+{
+  "task": "maddie-controlled-rerank-comparison",
+  "run_at": "2026-10-10T19:43:47+00:00",
+  "frozen_plan": "outputs/findings/evaluation_plan.md",
+  "n_questions": 10,
+  "temperature": 0.0,
+  "include_images": true,
+  "library": {
+    "documents": 4,
+    "units": 103,
+    "chunks": 117,
+    "images": 103,
+    "text_vectors": 117,
+    "visual_vectors": 103
+  },
+  "rerank_on_summary": {
+    "n_questions": 10,
+    "conducted": 10,
+    "not_conducted": 0,
+    "schema_valid": 10,
+    "valid_ratio": 1.0,
+    "honest_refusals": 2,
+    "with_sources": 8,
+    "vision_path_used": 10,
+    "ladder_used": 0,
+    "ladder_exhausted": 0,
+    "failures": []
+  },
+  "rerank_off_summary": {
+    "n_questions": 10,
+    "conducted": 10,
+    "not_conducted": 0,
+    "schema_valid": 10,
+    "valid_ratio": 1.0,
+    "honest_refusals": 3,
+    "with_sources": 7,
+    "vision_path_used": 10,
+    "ladder_used": 0,
+    "ladder_exhausted": 0,
+    "failures": []
+  },
+  "maddie_note": "Correctness and source-support judgments are PROVISIONAL and pending human review (frozen rubric). 'Rank/position' uses DISPLAYED-source position from the retrieved-candidate order; the harness does not expose raw retrieval rank.",
+  "comparison": [
+    {
+      "question": "If you turn in an assignment late, what is the penalty?",
+      "rerank_on": {
+        "question": "If you turn in an assignment late, what is the penalty?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 2,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0002.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 3,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0003.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 8,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0008.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 10,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0010.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 3,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0003.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "Not submitting assignments on time will result in a 10% grade penalty for every calendar day the assignment is late. Assignments may not be turned in more than five days late.",
+        "raw": "```json\n{\n\"answer\": \"Not submitting assignments on time will result in a 10% grade penalty for every calendar day the assignment is late. Assignments may not be turned in more than five days late.\",\n\"sources\": [\n{\n\"doc\": \"mbax_6418_syllabus_fall_2026__0180dd94\",\n\"page_no\": 2,\n\"excerpt\": \"Not submitting assignments on time will result in a 10% grade penalty for every calendar day the assignment is late (e.g., an assignment that would have received a grade of 80/100 if turned in on time would receive a grade of 72/100 [.80 * .90 = .72] if turned in up to one day late or 64/100 [.80 * .80 = .64] if turned up to two days late [and so on]). Assignments may not be turned in more than five days late\"\n}\n]\n}\n```",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "page_no": 2,
+            "kind": "page",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "excerpt": "Not submitting assignments on time will result in a 10% grade penalty for every calendar day the assignment is late (e.g., an assignment that would have received a grade of 80/100 if turned in on time would receive a grade of 72/100 [.80 * .90 = .72] if turned in up to one day late or 64/100 [.80 * .80 = .64] if turned up to two days late [and so on]). Assignments may not be turned in more than five days late",
+            "excerpt_chars": 412,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0002.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 4.91
+      },
+      "rerank_off": {
+        "question": "If you turn in an assignment late, what is the penalty?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 2,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0002.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 7,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0007.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 26,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0026.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 24,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0024.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 3,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0003.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "Not submitting assignments on time will result in a 10% grade penalty for every calendar day the assignment is late.",
+        "raw": "```json\n{\n\"answer\": \"Not submitting assignments on time will result in a 10% grade penalty for every calendar day the assignment is late.\",\n\"sources\": [\n{\n\"doc\": \"mbax_6418_syllabus_fall_2026__0180dd94\",\n\"page_no\": 2,\n\"excerpt\": \"Not submitting assignments on time will result in a 10% grade penalty for every calendar day the assignment is late\"\n}\n]\n}\n```",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "page_no": 2,
+            "kind": "page",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "excerpt": "Not submitting assignments on time will result in a 10% grade penalty for every calendar day the assignment is late",
+            "excerpt_chars": 115,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0002.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 3.58
+      }
+    },
+    {
+      "question": "What is quantization, and why does it matter for LLMs?",
+      "rerank_on": {
+        "question": "What is quantization, and why does it matter for LLMs?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 15,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0015.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 16,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0016.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 3,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0003.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 2,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0002.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 7,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0007.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster. It matters for LLMs because it helps reduce hardware requirements and improve inference performance. Many models are trained at 16-bit precision, but this can be reduced to 8-bits or 4-bits without significant accuracy degradation, significantly lowering the memory footprint (e.g., reducing a model size from ~61GB to ~17GB).",
+        "raw": "```json\n{\n  \"answer\": \"Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster. It matters for LLMs because it helps reduce hardware requirements and improve inference performance. Many models are trained at 16-bit precision, but this can be reduced to 8-bits or 4-bits without significant accuracy degradation, significantly lowering the memory footprint (e.g., reducing a model size from ~61GB to ~17GB).\",\n  \"sources\": [\n    {\n      \"doc\": \"mbax_6418_week_2_llm_fundamentals_v2__1af2611e\",\n      \"page_no\": 15,\n      \"excerpt\": \"Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster\"\n    },\n    {\n      \"doc\": \"mbax_6418_week_2_llm_fundamentals_v2__1af2611e\",\n      \"page_no\": 16,\n      \"excerpt\": \"Various quantization formats exist to help reduce hardware requirements and improve inference performance\"\n    }\n  ]\n}\n```",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "page_no": 15,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "excerpt": "Quantization is a process for scaling and rounding model parameters to make models smaller and potentially faster",
+            "excerpt_chars": 113,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0015.png",
+            "excerpt_overlaps_evidence": true
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "page_no": 16,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "excerpt": "Various quantization formats exist to help reduce hardware requirements and improve inference performance",
+            "excerpt_chars": 105,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0016.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 5.33
+      },
+      "rerank_off": {
+        "question": "What is quantization, and why does it matter for LLMs?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 2,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0002.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 3,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0003.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 11,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0011.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 4,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0004.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 5,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0005.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "Not found in the provided materials.",
+        "raw": "{\"answer\": \"Not found in the provided materials.\", \"sources\": []}",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 3.28
+      }
+    },
+    {
+      "question": "What is the difference between vibe coding and agentic coding?",
+      "rerank_on": {
+        "question": "What is the difference between vibe coding and agentic coding?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 30,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0030.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 36,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0036.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 27,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0027.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 29,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0029.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 35,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0035.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "Based on the provided materials, the difference is that Vibe Coding is human-in-the-loop, prompt-based, and conversational, designed for intuitive ideation and creative exploration where the user interacts via natural language and performs manual testing. In contrast, Agentic Coding is autonomous, involving goal-driven agents that plan, execute, test, and iterate with minimal human input. The accompanying diagram illustrates this by showing Vibe Coding with a human user and manual testing, while Agentic Coding features a robot/AI performing autonomous actions and independent tests.",
+        "raw": "```json\n{\n\"answer\": \"Based on the provided materials, the difference is that Vibe Coding is human-in-the-loop, prompt-based, and conversational, designed for intuitive ideation and creative exploration where the user interacts via natural language and performs manual testing. In contrast, Agentic Coding is autonomous, involving goal-driven agents that plan, execute, test, and iterate with minimal human input. The accompanying diagram illustrates this by showing Vibe Coding with a human user and manual testing, while Agentic Coding features a robot/AI performing autonomous actions and independent tests.\",\n\"sources\": [\n{\n\"doc\": \"mbax_6418_week_2_llm_fundamentals_v2__1af2611e\",\n\"page_no\": 30,\n\"excerpt\": \"Vibe Coding vs. Agentic Coding Vibe Coding Human-in-the-loop Prompt-based Conversational Designed for intuitive ideation and creative exploration Agentic Coding Autonomous Involves goal-driven agents that plan, execute, test, and iterate Minimal human input\"\n},\n{\n\"doc\": \"mbax_6418_week_2_llm_fundamentals_v2__1af2611e\",\n\"page_no\": 30,\n\"excerpt\": \"Vibe Coding (a) Natural Language Code Generation Manual Testing Agentic Coding (b) Autonomous Actions Environment Independent Tests\"\n}\n]\n}\n```",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "page_no": 30,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "excerpt": "Vibe Coding vs. Agentic Coding Vibe Coding Human-in-the-loop Prompt-based Conversational Designed for intuitive ideation and creative exploration Agentic Coding Autonomous Involves goal-driven agents that plan, execute, test, and iterate Minimal human input",
+            "excerpt_chars": 257,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0030.png",
+            "excerpt_overlaps_evidence": true
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "page_no": 30,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "excerpt": "Vibe Coding (a) Natural Language Code Generation Manual Testing Agentic Coding (b) Autonomous Actions Environment Independent Tests",
+            "excerpt_chars": 131,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0030.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 9.0
+      },
+      "rerank_off": {
+        "question": "What is the difference between vibe coding and agentic coding?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 29,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0029.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 36,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0036.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 33,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0033.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 30,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0030.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 8,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0008.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "Vibe coding is human-in-the-loop, prompt-based, and conversational, designed for intuitive ideation and creative exploration. In contrast, agentic coding is autonomous and involves goal-driven agents that plan, execute, test, and iterate with minimal human input.",
+        "raw": "{\n\"answer\": \"Vibe coding is human-in-the-loop, prompt-based, and conversational, designed for intuitive ideation and creative exploration. In contrast, agentic coding is autonomous and involves goal-driven agents that plan, execute, test, and iterate with minimal human input.\",\n\"sources\": [\n{\n\"doc\": \"mbax_6418_week_2_llm_fundamentals_v2__1af2611e\",\n\"page_no\": 30,\n\"excerpt\": \"Vibe Coding vs. Agentic Coding Vibe Coding Human-in-the-loop Prompt-based Conversational Designed for intuitive ideation and creative exploration Agentic Coding Autonomous Involves goal-driven agents that plan, execute, test, and iterate Minimal human input\"\n}\n]\n}",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "page_no": 30,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "excerpt": "Vibe Coding vs. Agentic Coding Vibe Coding Human-in-the-loop Prompt-based Conversational Designed for intuitive ideation and creative exploration Agentic Coding Autonomous Involves goal-driven agents that plan, execute, test, and iterate Minimal human input",
+            "excerpt_chars": 257,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0030.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 6.85
+      }
+    },
+    {
+      "question": "What is the difference between zero-shot and few-shot prompting?",
+      "rerank_on": {
+        "question": "What is the difference between zero-shot and few-shot prompting?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 20,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0020.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 13,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0013.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 2,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0002.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 24,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0024.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 17,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0017.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "Zero-shot provides no examples when asking for a response, whereas few-shot offers many examples.",
+        "raw": "```json\n{\n\"answer\": \"Zero-shot provides no examples when asking for a response, whereas few-shot offers many examples.\",\n\"sources\": [\n{\n\"doc\": \"mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2\",\n\"page_no\": 20,\n\"excerpt\": \"Zero-shot provides no examples when asking for a response... One-shot and few-shot offer one or many examples, respectively\"\n}\n]\n}\n```",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "page_no": 20,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "excerpt": "Zero-shot provides no examples when asking for a response... One-shot and few-shot offer one or many examples, respectively",
+            "excerpt_chars": 123,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0020.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 3.77
+      },
+      "rerank_off": {
+        "question": "What is the difference between zero-shot and few-shot prompting?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 20,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0020.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 17,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0017.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 24,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0024.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 5,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0005.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 21,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0021.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "Zero-shot provides no examples when asking for a response, whereas few-shot offers many examples.",
+        "raw": "```json\n{\n\"answer\": \"Zero-shot provides no examples when asking for a response, whereas few-shot offers many examples.\",\n\"sources\": [\n{\n\"doc\": \"mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2\",\n\"page_no\": 20,\n\"excerpt\": \"Zero-shot provides no examples when asking for a response... One-shot and few-shot offer one or many examples, respectively\"\n}\n]\n}\n```",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "page_no": 20,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "excerpt": "Zero-shot provides no examples when asking for a response... One-shot and few-shot offer one or many examples, respectively",
+            "excerpt_chars": 123,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0020.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 3.78
+      }
+    },
+    {
+      "question": "What is RAG, and why would you use it?",
+      "rerank_on": {
+        "question": "What is RAG, and why would you use it?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 11,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0011.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 12,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0012.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 10,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0010.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 9,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0009.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 18,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0018.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "RAG stands for Retrieval-augmented generation. It retrieves relevant information from documents, databases, and other data sources and adds it to a model\u2019s context to help generate a response to a user\u2019s prompt. You would use it because it gives a model access to information beyond its training data, including more recent or private information. It selects relevant material from a large collection and grounds responses in sources, making answers easier to verify and potentially reducing hallucinations. It also allows apps to draw on codebases, course materials, private documents, and other information sources to support a variety of tasks. Additionally, it offers benefits like grounding (linking answers to real evidence), scalability (adapting to many domains without constant retraining), and cost efficiency (cutting down on repeated fine-tuning).",
+        "raw": "{\n  \"answer\": \"RAG stands for Retrieval-augmented generation. It retrieves relevant information from documents, databases, and other data sources and adds it to a model\u2019s context to help generate a response to a user\u2019s prompt. You would use it because it gives a model access to information beyond its training data, including more recent or private information. It selects relevant material from a large collection and grounds responses in sources, making answers easier to verify and potentially reducing hallucinations. It also allows apps to draw on codebases, course materials, private documents, and other information sources to support a variety of tasks. Additionally, it offers benefits like grounding (linking answers to real evidence), scalability (adapting to many domains without constant retraining), and cost efficiency (cutting down on repeated fine-tuning).\",\n  \"sources\": [\n    {\n      \"doc\": \"mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406\",\n      \"page_no\": 10,\n      \"excerpt\": \"Retrieval-augmented generation (RAG) retrieves relevant information from documents, databases, and other data sources and adds it to a model\u2019s context to help generate a response to a user\u2019s prompt/question\"\n    },\n    {\n      \"doc\": \"mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406\",\n      \"page_no\": 11,\n      \"excerpt\": \"Why Use RAG? RAG gives a model access to information beyond its training data, including more recent or private information It selects relevant material from a large collection \u2013 or corpus \u2013 and grounds responses in sources, making answers easier to verify, potentially reducing hallucinations\"\n    },\n    {\n      \"doc\": \"mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406\",\n      \"page_no\": 12,\n      \"excerpt\": \"RAG lets your app draw on codebases, course materials, private documents, and other information sources to support a variety of tasks\"\n    }\n  ]\n}",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "page_no": 10,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "excerpt": "Retrieval-augmented generation (RAG) retrieves relevant information from documents, databases, and other data sources and adds it to a model\u2019s context to help generate a response to a user\u2019s prompt/question",
+            "excerpt_chars": 206,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0010.png",
+            "excerpt_overlaps_evidence": true
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "page_no": 11,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "excerpt": "Why Use RAG? RAG gives a model access to information beyond its training data, including more recent or private information It selects relevant material from a large collection \u2013 or corpus \u2013 and grounds responses in sources, making answers easier to verify, potentially reducing hallucinations",
+            "excerpt_chars": 293,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0011.png",
+            "excerpt_overlaps_evidence": true
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "page_no": 12,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "excerpt": "RAG lets your app draw on codebases, course materials, private documents, and other information sources to support a variety of tasks",
+            "excerpt_chars": 133,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0012.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 15.01
+      },
+      "rerank_off": {
+        "question": "What is RAG, and why would you use it?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 11,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0011.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 12,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0012.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 10,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0010.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 9,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0009.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 12,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0012.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "Retrieval-augmented generation (RAG) is a process that retrieves relevant information from documents, databases, and other data sources and adds it to a model\u2019s context to help generate a response to a user\u2019s prompt or question. \n\nYou would use RAG for several reasons:\n1. It gives a model access to information beyond its training data, such as more recent or private information.\n2. It selects relevant material from a large collection (corpus) and grounds responses in sources, making answers easier to verify and potentially reducing hallucinations.\n3. It offers scalability by allowing one model to adapt to many domains without constant retraining.\n4. It provides cost efficiency by cutting down on repeated fine-tuning and heavy compute cycles.\n5. It allows applications to draw on various sources like codebases, course materials, and private documents to support tasks like enterprise search, customer service, research, compliance, and coding assistance.",
+        "raw": "{\n\"answer\": \"Retrieval-augmented generation (RAG) is a process that retrieves relevant information from documents, databases, and other data sources and adds it to a model\u2019s context to help generate a response to a user\u2019s prompt or question. \\n\\nYou would use RAG for several reasons:\\n1. It gives a model access to information beyond its training data, such as more recent or private information.\\n2. It selects relevant material from a large collection (corpus) and grounds responses in sources, making answers easier to verify and potentially reducing hallucinations.\\n3. It offers scalability by allowing one model to adapt to many domains without constant retraining.\\n4. It provides cost efficiency by cutting down on repeated fine-tuning and heavy compute cycles.\\n5. It allows applications to draw on various sources like codebases, course materials, and private documents to support tasks like enterprise search, customer service, research, compliance, and coding assistance.\",\n\"sources\": [\n{\n\"doc\": \"mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406\",\n\"page_no\": 10,\n\"excerpt\": \"Retrieval-augmented generation (RAG) retrieves relevant information from documents, databases, and other data sources and adds it to a model\u2019s context to help generate a response to a user\u2019s prompt/question\"\n},\n{\n\"doc\": \"mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406\",\n\"page_no\": 11,\n\"excerpt\": \"RAG gives a model access to information beyond its training data, including more recent or private information It selects relevant material from a large collection \u2013 or corpus \u2013 and grounds responses in sources, making answers easier to verify, potentially reducing hallucinations\"\n},\n{\n\"doc\": \"mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406\",\n\"page_no\": 12,\n\"excerpt\": \"RAG lets your app draw on codebases, course materials, private documents, and other information sources to support a variety of tasks\"\n}\n]\n}",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "page_no": 10,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "excerpt": "Retrieval-augmented generation (RAG) retrieves relevant information from documents, databases, and other data sources and adds it to a model\u2019s context to help generate a response to a user\u2019s prompt/question",
+            "excerpt_chars": 206,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0010.png",
+            "excerpt_overlaps_evidence": true
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "page_no": 11,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "excerpt": "RAG gives a model access to information beyond its training data, including more recent or private information It selects relevant material from a large collection \u2013 or corpus \u2013 and grounds responses in sources, making answers easier to verify, potentially reducing hallucinations",
+            "excerpt_chars": 280,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0011.png",
+            "excerpt_overlaps_evidence": true
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "page_no": 12,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "excerpt": "RAG lets your app draw on codebases, course materials, private documents, and other information sources to support a variety of tasks",
+            "excerpt_chars": 133,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0012.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 8.4
+      }
+    },
+    {
+      "question": "What chunking strategies do the materials describe?",
+      "rerank_on": {
+        "question": "What chunking strategies do the materials describe?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 17,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0017.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 26,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0026.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 24,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0024.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 28,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0028.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 5,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0005.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "The materials describe four common chunking strategies:\n1. Fixed size: chunks with a set size, often with overlap.\n2. Recursive: split at boundaries like paragraphs, then divide oversized chunks at finer boundaries like sentences.\n3. Document-based: keep related information together based on structural boundaries such as headings.\n4. Semantic: split based on changing topics or meanings.",
+        "raw": "```json\n{\n\"answer\": \"The materials describe four common chunking strategies:\\n1. Fixed size: chunks with a set size, often with overlap.\\n2. Recursive: split at boundaries like paragraphs, then divide oversized chunks at finer boundaries like sentences.\\n3. Document-based: keep related information together based on structural boundaries such as headings.\\n4. Semantic: split based on changing topics or meanings.\",\n\"sources\": [\n{\n\"doc\": \"mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406\",\n\"page_no\": 17,\n\"excerpt\": \"Common chunking strategies: Fixed size \u2013 chunks with a set size, often with overlap Recursive \u2013 split at boundaries like paragraphs, then divide oversized chunks at finer boundaries like sentences Document-based \u2013 keep related information together based on structural boundaries such as headings (see example above) Semantic \u2013 split based on changing topics or meanings\"\n}\n]\n}\n```",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "page_no": 17,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "excerpt": "Common chunking strategies: Fixed size \u2013 chunks with a set size, often with overlap Recursive \u2013 split at boundaries like paragraphs, then divide oversized chunks at finer boundaries like sentences Document-based \u2013 keep related information together based on structural boundaries such as headings (see example above) Semantic \u2013 split based on changing topics or meanings",
+            "excerpt_chars": 369,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0017.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 4.28
+      },
+      "rerank_off": {
+        "question": "What chunking strategies do the materials describe?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 17,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0017.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 2,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0002.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 5,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0005.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 24,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0024.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 5,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0005.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "The materials describe four common chunking strategies:\n\n1. **Fixed size**: Chunks with a set size, often with overlap.\n2. **Recursive**: Split at boundaries like paragraphs, then divide oversized chunks at finer boundaries like sentences.\n3. **Document-based**: Keep related information together based on structural boundaries such as headings.\n4. **Semantic**: Split based on changing topics or meanings.",
+        "raw": "{\"answer\": \"The materials describe four common chunking strategies:\\n\\n1. **Fixed size**: Chunks with a set size, often with overlap.\\n2. **Recursive**: Split at boundaries like paragraphs, then divide oversized chunks at finer boundaries like sentences.\\n3. **Document-based**: Keep related information together based on structural boundaries such as headings.\\n4. **Semantic**: Split based on changing topics or meanings.\", \"sources\": [{\"doc\": \"mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406\", \"page_no\": 17, \"excerpt\": \"Common chunking strategies: Fixed size \u2013 chunks with a set size, often with overlap Recursive \u2013 split at boundaries like paragraphs, then divide oversized chunks at finer boundaries like sentences Document-based \u2013 keep related information together based on structural boundaries such as headings (see example above) Semantic \u2013 split based on changing topics or meanings\"}]}",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "page_no": 17,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "excerpt": "Common chunking strategies: Fixed size \u2013 chunks with a set size, often with overlap Recursive \u2013 split at boundaries like paragraphs, then divide oversized chunks at finer boundaries like sentences Document-based \u2013 keep related information together based on structural boundaries such as headings (see example above) Semantic \u2013 split based on changing topics or meanings",
+            "excerpt_chars": 369,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0017.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 45.23
+      }
+    },
+    {
+      "question": "Looking at Week 2's \"Popular Open Coding Models\" table, which model has the most total parameters, and what total does the table report?",
+      "rerank_on": {
+        "question": "Looking at Week 2's \"Popular Open Coding Models\" table, which model has the most total parameters, and what total does the table report?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 40,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0040.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 18,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0018.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 42,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0042.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 7,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0007.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 1,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0001.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "Not found in the provided materials.",
+        "raw": "{\"answer\": \"Not found in the provided materials.\", \"sources\": []}",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 5.04
+      },
+      "rerank_off": {
+        "question": "Looking at Week 2's \"Popular Open Coding Models\" table, which model has the most total parameters, and what total does the table report?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 18,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0018.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 14,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0014.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 5,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0005.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 24,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0024.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 5,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0005.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "Not found in the provided materials.",
+        "raw": "{\"answer\": \"Not found in the provided materials.\", \"sources\": []}",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 4.82
+      }
+    },
+    {
+      "question": "Find the meme about Vibe Coding on \"Prod\" in the Week 2 slides. Which slide is it on, and what do the image and its text show?",
+      "rerank_on": {
+        "question": "Find the meme about Vibe Coding on \"Prod\" in the Week 2 slides. Which slide is it on, and what do the image and its text show?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 33,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0033.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 29,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0029.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 7,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0007.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 1,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0001.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 42,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0042.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "The meme is on slide 33. The image shows the \"One Does Not Simply\" meme featuring Boromir from Lord of the Rings. The text on the meme reads: \"ONE DOES NOT SIMPLY VIBE CODE A PRODUCTION-GRADE ENTERPRISE APP\".",
+        "raw": "{\"answer\": \"The meme is on slide 33. The image shows the \\\"One Does Not Simply\\\" meme featuring Boromir from Lord of the Rings. The text on the meme reads: \\\"ONE DOES NOT SIMPLY VIBE CODE A PRODUCTION-GRADE ENTERPRISE APP\\\".\", \"sources\": [{\"doc\": \"mbax_6418_week_2_llm_fundamentals_v2__1af2611e\", \"page_no\": 33, \"excerpt\": \"Vibe Coding on \u201cProd\u201d Sources: https://www.reddit.com/r/vibecoding/comments/1mjy0gn/what_challenges_have_you_run_into_trying_to/\"}]}",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "page_no": 33,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "excerpt": "Vibe Coding on \u201cProd\u201d Sources: https://www.reddit.com/r/vibecoding/comments/1mjy0gn/what_challenges_have_you_run_into_trying_to/",
+            "excerpt_chars": 128,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0033.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 5.85
+      },
+      "rerank_off": {
+        "question": "Find the meme about Vibe Coding on \"Prod\" in the Week 2 slides. Which slide is it on, and what do the image and its text show?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 33,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0033.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 7,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0007.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 42,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0042.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 41,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0041.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 4,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0004.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "The meme is on slide 33 of the Week 2 slides (document 'mbax_6418_week_2_llm_fundamentals_v2__1af2611e'). The image is the \"One Does Not Simply\" meme featuring Boromir from The Lord of the Rings. The text overlaid on the image reads: \"ONE DOES NOT SIMPLY VIBE CODE A PRODUCTION-GRADE ENTERPRISE APP\".",
+        "raw": "{\"answer\": \"The meme is on slide 33 of the Week 2 slides (document 'mbax_6418_week_2_llm_fundamentals_v2__1af2611e'). The image is the \\\"One Does Not Simply\\\" meme featuring Boromir from The Lord of the Rings. The text overlaid on the image reads: \\\"ONE DOES NOT SIMPLY VIBE CODE A PRODUCTION-GRADE ENTERPRISE APP\\\".\", \"sources\": [{\"doc\": \"mbax_6418_week_2_llm_fundamentals_v2__1af2611e\", \"page_no\": 33, \"excerpt\": \"Vibe Coding on \u201cProd\u201d Sources: https://www.reddit.com/r/vibecoding/comments/1mjy0gn/what_challenges_have_you_run_into_trying_to/\"}, {\"doc\": \"mbax_6418_week_2_llm_fundamentals_v2__1af2611e\", \"page_no\": 33, \"excerpt\": \"Vibe Coding on \u201cProd\u201d ONE DOES NOT SIMPLY VIBE CODE A PRODUCTION-GRADE ENTERPRISE APP\"}]}",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "page_no": 33,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "excerpt": "Vibe Coding on \u201cProd\u201d Sources: https://www.reddit.com/r/vibecoding/comments/1mjy0gn/what_challenges_have_you_run_into_trying_to/",
+            "excerpt_chars": 128,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0033.png",
+            "excerpt_overlaps_evidence": true
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "page_no": 33,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "excerpt": "Vibe Coding on \u201cProd\u201d ONE DOES NOT SIMPLY VIBE CODE A PRODUCTION-GRADE ENTERPRISE APP",
+            "excerpt_chars": 85,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0033.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 4.39
+      }
+    },
+    {
+      "question": "Describe the hybrid RAG pipeline diagram. What paths and stages does it show?",
+      "rerank_on": {
+        "question": "Describe the hybrid RAG pipeline diagram. What paths and stages does it show?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 18,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0018.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 9,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0009.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 10,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0010.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 13,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0013.png"
+          },
+          {
+            "doc": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2",
+            "doc_title": "mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2.pptx",
+            "page_no": 3,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_3_prompt_engineering_v1_1__7418bcd2__p0003.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "The diagram titled 'Hybrid RAG Pipeline with Reranking' illustrates a workflow starting with a 'Question' on the left. This question splits into two parallel retrieval paths (marked in blue): a 'Keyword Search' and an 'Embedding Model' that leads to a 'Vector Search'. Both paths converge into a 'Candidate Chunks' box. These candidates are then passed to an orange 'Reranker' box. Finally, the reranker outputs 'Ranked Chunks With Source Details'. The accompanying text explains that retrieval uses both keyword and vector search to find candidates, while reranking compares these candidates to the original question to prioritize chunks for the LLM.",
+        "raw": "```json\n{\n  \"answer\": \"The diagram titled 'Hybrid RAG Pipeline with Reranking' illustrates a workflow starting with a 'Question' on the left. This question splits into two parallel retrieval paths (marked in blue): a 'Keyword Search' and an 'Embedding Model' that leads to a 'Vector Search'. Both paths converge into a 'Candidate Chunks' box. These candidates are then passed to an orange 'Reranker' box. Finally, the reranker outputs 'Ranked Chunks With Source Details'. The accompanying text explains that retrieval uses both keyword and vector search to find candidates, while reranking compares these candidates to the original question to prioritize chunks for the LLM.\",\n  \"sources\": [\n    {\n      \"doc\": \"mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406\",\n      \"page_no\": 18,\n      \"excerpt\": \"Hybrid RAG Pipeline with Reranking RAG uses information from prepared documents to help an LLM answer the user\u2019s question Retrieval finds relevant candidate chunks using both keyword search and vector search in Hybrid RAG Reranking compares these candidates to the original question and prioritizes which chunks are supplied to the LLM as context\"\n    }\n  ]\n}\n```",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "page_no": 18,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "excerpt": "Hybrid RAG Pipeline with Reranking RAG uses information from prepared documents to help an LLM answer the user\u2019s question Retrieval finds relevant candidate chunks using both keyword search and vector search in Hybrid RAG Reranking compares these candidates to the original question and prioritizes which chunks are supplied to the LLM as context",
+            "excerpt_chars": 346,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0018.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 6.8
+      },
+      "rerank_off": {
+        "question": "Describe the hybrid RAG pipeline diagram. What paths and stages does it show?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 18,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0018.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 10,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0010.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 12,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0012.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 11,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0011.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 9,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0009.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "The diagram titled 'Hybrid RAG Pipeline with Reranking' illustrates a two-stage process starting with a 'Question'. \n\n1. **Retrieval Stage (Blue boxes):** The question enters a retrieval phase that splits into two parallel paths:\n   - A 'Keyword Search'.\n   - An 'Embedding Model' followed by a 'Vector Search'.\n   Both paths converge to produce 'Candidate Chunks'.\n\n2. **Reranking Stage (Orange box):** The 'Candidate Chunks' are passed to a 'Reranker'.\n\n3. **Output:** The final output is 'Ranked Chunks With Source Details'.\n\nThe accompanying text explains that retrieval finds relevant candidate chunks using both keyword and vector search, while reranking compares these candidates to the original question to prioritize which chunks are supplied to the LLM as context.",
+        "raw": "```json\n{\n  \"answer\": \"The diagram titled 'Hybrid RAG Pipeline with Reranking' illustrates a two-stage process starting with a 'Question'. \\n\\n1. **Retrieval Stage (Blue boxes):** The question enters a retrieval phase that splits into two parallel paths:\\n   - A 'Keyword Search'.\\n   - An 'Embedding Model' followed by a 'Vector Search'.\\n   Both paths converge to produce 'Candidate Chunks'.\\n\\n2. **Reranking Stage (Orange box):** The 'Candidate Chunks' are passed to a 'Reranker'.\\n\\n3. **Output:** The final output is 'Ranked Chunks With Source Details'.\\n\\nThe accompanying text explains that retrieval finds relevant candidate chunks using both keyword and vector search, while reranking compares these candidates to the original question to prioritize which chunks are supplied to the LLM as context.\",\n  \"sources\": [\n    {\n      \"doc\": \"mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406\",\n      \"page_no\": 18,\n      \"excerpt\": \"Hybrid RAG Pipeline with Reranking RAG uses information from prepared documents to help an LLM answer the user\u2019s question Retrieval finds relevant candidate chunks using both keyword search and vector search in Hybrid RAG Reranking compares these candidates to the original question and prioritizes which chunks are supplied to the LLM as context\"\n    }\n  ]\n}\n```",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "page_no": 18,
+            "kind": "slide",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "excerpt": "Hybrid RAG Pipeline with Reranking RAG uses information from prepared documents to help an LLM answer the user\u2019s question Retrieval finds relevant candidate chunks using both keyword search and vector search in Hybrid RAG Reranking compares these candidates to the original question and prioritizes which chunks are supplied to the LLM as context",
+            "excerpt_chars": 346,
+            "excerpt_nonempty": true,
+            "pinned_to_evidence": true,
+            "page_screenshot_available": true,
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0018.png",
+            "excerpt_overlaps_evidence": true
+          }
+        ],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 6.95
+      }
+    },
+    {
+      "question": "What default port number does a locally served Gradio app use?",
+      "rerank_on": {
+        "question": "What default port number does a locally served Gradio app use?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 26,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0026.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 12,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0012.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 2,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0002.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 19,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0019.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 4,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0004.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "Not found in the provided materials.",
+        "raw": "{\n\"answer\": \"Not found in the provided materials.\",\n\"sources\": []\n}",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 3.68
+      },
+      "rerank_off": {
+        "question": "What default port number does a locally served Gradio app use?",
+        "retrieval_count": 5,
+        "retrieved": [
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 12,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0012.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 4,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0004.png"
+          },
+          {
+            "doc": "mbax_6418_syllabus_fall_2026__0180dd94",
+            "doc_title": "mbax_6418_syllabus_fall_2026__0180dd94.pdf",
+            "page_no": 5,
+            "kind": "page",
+            "image_path": "outputs/pages/mbax_6418_syllabus_fall_2026__0180dd94__p0005.png"
+          },
+          {
+            "doc": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e",
+            "doc_title": "mbax_6418_week_2_llm_fundamentals_v2__1af2611e.pptx",
+            "page_no": 26,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_2_llm_fundamentals_v2__1af2611e__p0026.png"
+          },
+          {
+            "doc": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406",
+            "doc_title": "mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406.pptx",
+            "page_no": 17,
+            "kind": "slide",
+            "image_path": "outputs/pages/mbax_6418_week_5_context_engineering_and_rag_v1__ea0fe406__p0017.png"
+          }
+        ],
+        "conducted": true,
+        "answer": "Not found in the provided materials.",
+        "raw": "{\"answer\": \"Not found in the provided materials.\", \"sources\": []}",
+        "valid": true,
+        "validation_errors": [],
+        "sources": [],
+        "ladder": {
+          "rungs_used": 1,
+          "retried": false,
+          "images_stripped": false
+        },
+        "images_sent": 5,
+        "temperature_used": 0.0,
+        "latency_s": 4.0
+      }
+    }
+  ]
+}

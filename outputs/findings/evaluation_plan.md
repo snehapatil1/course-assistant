@@ -1,10 +1,11 @@
-# Evaluation Plan (Frozen Design) — MBAX 6418 Assignment 2, Course Assistant
+# Evaluation Plan (Completed) — MBAX 6418 Assignment 2, Course Assistant
 
-**Status: DESIGN FROZEN — the question set may not be changed after seeing
-results.** The complete reranking comparison and final results are **still
-pending** (see §11). This file is the locked evaluation design; it is not a
-final report, and its results tables are blank until the controlled runs are
-executed and verified.
+**Status: COMPLETED — both controlled runs are executed and the results are
+recorded below (with manual verification).** The question set was frozen
+before either run and is unchanged. Automated results were produced by the
+eval harness at temperature 0 with images enabled; answer-quality judgments
+were then verified manually against the original source materials and are
+recorded in §12. This file is now the evaluation record.
 
 ---
 
@@ -397,29 +398,31 @@ Notes.
 
 | Q | Rerank | Rank/position | Expected source present | Correct doc/page | Irrelevant sources | Source support | Answer | Visual | Validated | Time | Notes |
 |---|--------|---------------|-------------------------|------------------|--------------------|----------------|--------|--------|-----------|------|-------|
-| Q1 | ON | | | | | | | | | | |
-| Q1 | OFF | | | | | | | | | | |
-| Q2 | ON | | | | | | | | | | |
-| Q2 | OFF | | | | | | | | | | |
-| Q3 | ON | | | | | | | | | | |
-| Q3 | OFF | | | | | | | | | | |
-| Q4 | ON | | | | | | | | | | |
-| Q4 | OFF | | | | | | | | | | |
-| Q5 | ON | | | | | | | | | | |
-| Q5 | OFF | | | | | | | | | | |
-| Q6 | ON | | | | | | | | | | |
-| Q6 | OFF | | | | | | | | | | |
-| Q7 | ON | | | | | | | | | | |
-| Q7 | OFF | | | | | | | | | | |
-| Q8 | ON | | | | | | | | | | |
-| Q8 | OFF | | | | | | | | | | |
-| Q9 | ON | | | | | | | | | | |
-| Q9 | OFF | | | | | | | | | | |
-| Q10 | ON | | | | | | | | | | |
-| Q10 | OFF | | | | | | | | | | |
+| Q1 | ON | p2@1, p3@2 | ✅ p2 + p3 | ✅ syllabus p2 (p3 cited as continuation) | 3 | ✅ | ⚠️ PARTIAL | n/a | ✅ | 4.91 s | 10% daily penalty stated; 5-day cap mentioned but other policy details (lowest dropped) omitted |
+| Q1 | OFF | p2@1, p3 absent | ✅ p2 | ✅ syllabus p2 | 4 | ✅ | ⚠️ PARTIAL | n/a | ✅ | 3.58 s | Same limitation; p3 (5-day cap continuation) not in top-5 |
+| Q2 | ON | s15@1, s16@2 | ✅ both | ✅ week2 s15–16 | 3 | ✅ | ✅ CORRECT | n/a | ✅ | 5.33 s | Clearest rerank benefit — gold slides promoted, correct answer |
+| Q2 | OFF | s15/s16 absent | ❌ absent | ❌ none cited | 5 | — (0 cited) | ❌ INCORRECT (honest refusal, no fabrication) | n/a | ✅ | 3.28 s | Gold slides 15–16 missed; app honestly refused |
+| Q3 | ON | s30@1 | ✅ | ✅ week2 s30 | 4 | ✅ | ✅ CORRECT | n/a | ✅ | 9.00 s | Contrast answered; s30 position 1 |
+| Q3 | OFF | s30@4 | ✅ | ✅ week2 s30 | 4 | ✅ | ✅ CORRECT | n/a | ✅ | 6.85 s | Same answer; gold fell to position 4 |
+| Q4 | ON | s20@1 | ✅ | ✅ week3 s20 | 4 | ✅ | ✅ CORRECT | n/a | ✅ | 3.77 s | |
+| Q4 | OFF | s20@1 | ✅ | ✅ week3 s20 | 4 | ✅ | ✅ CORRECT | n/a | ✅ | 3.78 s | Identical outcome |
+| Q5 | ON | p11@1, p10@3 | ✅ both | ✅ week5 s10–11 (+s12) | 1 | ✅ | ✅ CORRECT | n/a | ✅ | 15.01 s | 3 sources cited |
+| Q5 | OFF | p11@1, p10@3 | ✅ both | ✅ week5 s10–11 (+s12) | 1 | ✅ | ✅ CORRECT | n/a | ✅ | 8.40 s | Same evidence |
+| Q6 | ON | s17@1 | ✅ | ✅ week5 s17 | 4 | ✅ | ✅ CORRECT | n/a | ✅ | 4.28 s | All 4 strategies |
+| Q6 | OFF | s17@1 | ✅ | ✅ week5 s17 | 4 | ✅ | ✅ CORRECT | n/a | ✅ | 45.23 s | Official latency; manual diagnostic rerun ≈7 s → one-off spike (see §12) |
+| Q7 | ON | s22 absent | ❌ absent | ❌ none cited | 5 | — (0 cited) | ❌ INCORRECT (honest refusal) | ❌ no slide shown | ✅ | 5.04 s | Slide 22 table not retrieved — investigated retrieval limitation, preserved |
+| Q7 | OFF | s22 absent | ❌ absent | ❌ none cited | 5 | — (0 cited) | ❌ INCORRECT (honest refusal) | ❌ no slide shown | ✅ | 4.82 s | Same failure in both conditions |
+| Q8 | ON | s33@1 | ✅ | ✅ week2 s33 | 3 | ✅ | ✅ CORRECT | ✅ slide 33 | ✅ | 5.85 s | Meme described exactly; no slide-34 confusion |
+| Q8 | OFF | s33@1 | ✅ | ✅ week2 s33 | 4 | ✅ | ✅ CORRECT | ✅ slide 33 | ✅ | 4.39 s | Same, 2 cited rows |
+| Q9 | ON | s18@1 | ✅ | ✅ week5 s18 | 4 | ✅ | ✅ CORRECT | ✅ slide 18 | ✅ | 6.80 s | Diagram fully described |
+| Q9 | OFF | s18@1 | ✅ | ✅ week5 s18 | 4 | ✅ | ✅ CORRECT | ✅ slide 18 | ✅ | 6.95 s | Same |
+| Q10 | ON | n/a | n/a | n/a | 5 | — (0 cited) | ✅ CORRECT honest refusal | n/a | ✅ | 3.68 s | No invented port or citation |
+| Q10 | OFF | n/a | n/a | n/a | 5 | — (0 cited) | ✅ CORRECT honest refusal | n/a | ✅ | 4.00 s | Same |
 
-Each cell: ✅ / ❌ / n/a (Q10). Response time is approximate (diagnostic only,
-never a headline number).
+Each cell: ✅ / ❌ / n/a. Rank/position = **displayed-source position** (the
+harness does not expose raw retrieval rank). Response time is approximate
+(diagnostic only). Answer column carries the **manual judgments** recorded in
+§12; all other columns are automated harness output.
 
 ---
 
@@ -481,16 +484,104 @@ after any UI fix, but they do not change the frozen question set.
 
 ---
 
-## 11. Status: complete comparison and final results are pending
+## 11. Status: comparison and final results are complete
 
-This document is the **frozen evaluation design**, not a final report. The
-controlled reranking-on/off comparison (§7), the results table (§9), and any
-claims about answer quality have **not** been produced yet. The smoke test
-(§10) is recorded: the initial failure was fixed by PR #13 (verified: rebuild
-succeeded, 2048-dim collections, regression tests pass), and the follow-up
-manual smoke test passed while exposing UI display limitations that are not
-yet fixed. Final findings will be written to the README only after: (a) both
-controlled runs execute and are scored against §4/§6, (b) the table in §9 is
-filled and verified, and (c) this design is converted into the final
-evaluation report. The question set is frozen and will not be changed after
-seeing results.
+This document is now the **completed evaluation record**. Both controlled
+runs (reranking ON, then OFF) were executed with the frozen ten-question set
+and identical settings (only `use_rerank` differs), the results table (§9) is
+filled from the saved automated results plus manual verification, and the
+interpretation in §12 is final. The raw automated result files are unchanged:
+`outputs/findings/maddie_rerank_comparison_20261010-194347.json` and
+`outputs/findings/maddie_rerank_comparison_latest.json`. The question set
+remains frozen (not changed after seeing results).
+
+---
+
+## 12. Final interpretation and findings
+
+### 12.1 Automated vs. manual verification
+
+- **Automated (harness):** per-question retrieval ordering, response times,
+  structured-output schema validation, and source-support audit (cited source
+  pinned to retrieved evidence, non-empty excerpt, screenshot availability)
+  come from `src.eval_qa` via the temporary runner. Schema/source validation:
+  **10/10 in both conditions**.
+- **Manual (human review):** the *answer-quality* judgments (CORRECT /
+  PARTIAL / INCORRECT) were recorded by manually checking each answer against
+  the original source materials and the frozen rubric. They are exact as
+  listed in §12.2.
+
+### 12.2 Answer-quality totals (manual judgments)
+
+| Condition | Correct | Partial | Incorrect | Subscores |
+|---|---|---|---|---|
+| Reranking ON | 8 | 1 (Q1) | 1 (Q7) | Q2/Q3/Q4/Q5/Q6/Q8/Q9/Q10 correct; Q1 partial; Q7 incorrect |
+| Reranking OFF | 7 | 1 (Q1) | 2 (Q2, Q7) | same, plus Q2 incorrect (honest refusal) |
+
+- Q1 ON: **PARTIAL** — states the 10% daily penalty but omits other required
+  policy details. Q1 OFF: **PARTIAL** — same limitation.
+- Q2 ON: **CORRECT**. Q2 OFF: **INCORRECT but an honest refusal with no
+  fabricated answer**.
+- Q3 ON/OFF: **CORRECT**. Q4 ON/OFF: **CORRECT**. Q5 ON/OFF: **CORRECT**.
+  Q6 ON/OFF: **CORRECT**.
+- Q7 ON/OFF: **INCORRECT but honest refusals**; Week 2 slide 22 was absent in
+  both conditions → investigated retrieval limitation (preserved, not hidden).
+- Q8 ON/OFF: **CORRECT**; Week 2 slide 33 appeared in both conditions.
+- Q9 ON/OFF: **CORRECT**; Week 5 slide 18 appeared in both conditions.
+- Q10 ON/OFF: **CORRECT honest refusals** (no invented port or citation).
+
+Schema/source validation: **10/10 in both conditions** (automated).
+
+### 12.3 Interpretation
+
+- **Q2 is the clearest reranking benefit.** With reranking ON, Week 2 slides
+  15–16 were promoted to positions 1–2 and the app produced a correct,
+  source-grounded answer. With reranking OFF, those gold slides were absent
+  from the top-5 evidence and the app honestly refused. This is a genuine,
+  controlled difference caused solely by the rerank toggle.
+- **Reranking improved expected-source placement for Q1 and Q3**: Q1's p3
+  (policy continuation) appeared in the top-5 only with rerank ON; Q3's gold
+  slide 30 ranked position 1 (ON) vs position 4 (OFF) with the same correct
+  answer.
+- **No question had better supporting evidence with reranking OFF.** Rerank
+  did not worsen evidence in any case.
+- **Q7 limitation (preserved):** neither condition retrieved Week 2 slide 22
+  (the "Popular Open Coding Models" table), so both runs produced an honest
+  "not in the materials" refusal. This is a retrieval-recall limitation of the
+  current system for that table slide, not a reranker effect and not an
+  answer hallucination. The question and scoring criteria are unchanged; the
+  failure is reported rather than hidden.
+- **Timing caveat:** Q6 OFF took **45.23 s** in the official automated run, but
+  a manual diagnostic rerun of the same question took about **7 s**. The
+  official value is preserved in §9; the manual check suggests it was a
+  one-off latency spike rather than a systematic OFF slowdown. Means and
+  medians are reported below; no claim that OFF is generally slower is made
+  on the basis of the outlier alone.
+  - ON: mean **6.4 s**/question, median **5.2 s** · OFF: mean **9.1 s**/question,
+    median **4.6 s** (Q6 OFF excluded → OFF mean ≈ 5.1 s).
+
+### 12.4 Recommendation
+
+**Keep reranking ON.** It improved answer correctness (Q2: incorrect→correct)
+and evidence ranking (Q1, Q3) with no observed quality regression in this
+evaluation, at a normal latency overhead of roughly 1–2 s when no outlier
+occurs. The known limits (Q7 table recall, UI display issues in §10.2) are
+independent of the rerank setting and are reported as limitations to address
+separately.
+
+### 12.5 Manual UI findings (recorded from manual interface testing)
+
+- Course-material labels are excessively long and difficult to understand.
+- Raw filenames, hashes, and internal identifiers appear instead of friendly
+  titles.
+- The source-evidence icon appears broken.
+- Original slide/page images are awkwardly cropped or zoomed.
+- Extra gallery images are not clearly tied to the cited sources.
+- Q7 did not display the required slide 22 (both conditions).
+- Q8 displayed slide 33 in both conditions. Q9 displayed slide 18 in both
+  conditions.
+- Structured validation appeared to pass during the manual checks.
+
+These are presentation/UX defects in evidence display, not answer-quality
+failures; they are documented for follow-up and do not change the frozen
+question set.
