@@ -8,7 +8,7 @@ evidence, and generate practice quizzes — built with Python (bm25s, ChromaDB,
 Gradio) and the class services on `dobolyi.com:9001+`. No course file is
 hardcoded anywhere; the corpus is whatever the user adds in the app.
 
-> Detailed setup, usage, findings, and limitations follow below (in progress).
+> Setup, usage, evaluation findings, and limitations are documented below.
 > See `PROGRESS.md` for the step-by-step build log.
 
 ## Default interface: Mountain Master
@@ -43,15 +43,55 @@ cp .env.example .env          # only if .env does not already exist; configure l
 On Windows, use `.venv\Scripts\python.exe` instead of `.venv/bin/python`. All launch methods use `src.app`; the older standalone dashboard modules are not alternate entry points.
 
 **Materials management (works with zero configuration):** in the app's
-Materials tab, upload PDF/PPTX files. The same file uploaded twice is a no-op
-(content-hash dedupe); removing a document purges its text, images, and index
-entries. PPTX files are converted with LibreOffice (install:
-`brew install --cask libreoffice`; without it, export the deck to PDF and
-upload that). See `data/library/README.md` for formats and conversion steps.
+Materials tab, upload **PDF** or **PPTX** files (these are the two supported
+formats; other file types are rejected with a clear message). The same file
+uploaded twice is a no-op (content-hash dedupe); removing a document purges
+its text, images, and index entries. **PPTX files are converted to PDF with
+LibreOffice** (install: `brew install --cask libreoffice`; without it,
+export the deck to PDF yourself and upload that instead). PDF parsing and
+PPTX→PDF conversion run locally; no class endpoint is required for uploads.
 
 **Q&A and Quiz tabs activate once `.env` has the class endpoints** (vision
 chat LLM, text/visual embeddings, multimodal reranker — `dobolyi.com:9001+`).
 Until then the app clearly reports which services are missing.
+
+### Configuring the class endpoints
+
+The `.env` file maps one variable set per service. The class endpoints file
+provided by the course staff lists, for each port, a base URL, an API key,
+and a model name. Map them like this (values shown are dummy examples — put
+your real values in `.env`, never in this README or any committed file):
+
+| Endpoint port | `.env` variables |
+|---|---|
+| `9001` — vision chat LLM | `CHAT_BASE_URL`, `CHAT_API_KEY`, `CHAT_MODEL` |
+| `9002` — text embeddings | `TEXT_EMBED_BASE_URL`, `TEXT_EMBED_API_KEY`, `TEXT_EMBED_MODEL` |
+| `9003` — visual embeddings | `VISUAL_EMBED_BASE_URL`, `VISUAL_EMBED_API_KEY`, `VISUAL_EMBED_MODEL` |
+| `9004` — multimodal reranker | `RERANK_BASE_URL`, `RERANK_API_KEY`, `RERANK_MODEL` |
+
+**Every base URL must include the `/v1` path.** The class endpoints file
+omits `/v1` on some ports (notably 9002 and 9004); the app calls
+`<base>/models`, `<base>/embeddings`, and `<base>/rerank` and gets HTTP 404
+without the `/v1` prefix. So `http://dobolyi.com:9002/embeddings` will fail;
+use `http://dobolyi.com:9002/v1/embeddings`. `CHAT_BASE_URL` should also end
+in `/v1` (e.g. `http://dobolyi.com:9001/v1`). `.env.example` already shows
+the correct `/v1` form for every service.
+
+API keys are stored locally in `.env` only (chmod 600, gitignored) and are
+never shown in the UI, logs, errors, screenshots, docs, tests, or GitHub.
+
+### Running the tests
+
+```bash
+.venv/bin/python -m pytest -q
+```
+
+The suite is hermetic: it uses synthetic documents (no course files) and
+runs with every class endpoint switched off unless a test deliberately
+switches one on, so it needs no `.env` and no network. **Verified result on
+this branch as of 2026-10-12: 112 passed, 4 skipped** — treat that as a
+dated snapshot, not a promise; run the command above to check the current
+result.
 
 ## Architecture
 
@@ -121,5 +161,7 @@ the vision model). One false negative (fine-tuning). Corpus here is 3 real
 documents; results should be re-checked as the library grows. To reproduce:
 `.env` with class endpoints, `python -m src.library add <files>`, then
 `TOP_K_FINAL=8 python -m src.eval_qa` and
-`TOP_K_FINAL=8 python -m src.eval_qa --compare-rerank`. Test suite: **94
-passed, 4 skipped**.
+`TOP_K_FINAL=8 python -m src.eval_qa --compare-rerank`. Test suite at the
+time of writing (baseline 2026-10-12, see "Running the tests" above):
+**112 passed, 4 skipped** — rerun `.venv/bin/python -m pytest -q` for the
+current status.

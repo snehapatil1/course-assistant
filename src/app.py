@@ -141,7 +141,23 @@ def refresh_docs() -> gr.Dropdown:
 # --------------------------------------------------------------------------- #
 # Q&A tab
 # --------------------------------------------------------------------------- #
-def answer_qa(question: str, doc_id: str, topic: str, rerank: bool,
+def _normalize_docs(value) -> list[str] | None:
+    """Normalize the Course materials selector to a clean doc list (or None).
+
+    The Gradio multi-select can deliver ``None``, ``[]``, ``""``, or ``[""]``
+    for an empty selection; all of those must mean "all available materials".
+    """
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return [value] if value.strip() else None
+    if isinstance(value, (list, tuple)):
+        docs = [v for v in value if isinstance(v, str) and v.strip()]
+        return docs or None
+    return None
+
+
+def answer_qa(question: str, doc_id: str | list[str] | None, topic: str, rerank: bool,
               images_on: bool) -> tuple[str, list, gr.Dropdown]:
     if not question.strip():
         return "Ask a question first.", [], gr.update()
@@ -151,7 +167,7 @@ def answer_qa(question: str, doc_id: str, topic: str, rerank: bool,
     query = f"{topic}: {question}" if topic.strip() else question
     try:
         candidates = retrieve.retrieve(
-            query, docs=([doc_id] if isinstance(doc_id, str) else doc_id) or None, use_rerank=rerank
+            query, docs=_normalize_docs(doc_id), use_rerank=rerank
         )
     except Exception as exc:  # noqa: BLE001 - surface honest, readable errors
         import traceback

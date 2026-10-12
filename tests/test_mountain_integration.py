@@ -32,6 +32,41 @@ def test_answer_dashboard_keeps_master_retrieval_and_separates_evidence(monkeypa
     assert images == []
 
 
+def test_answer_qa_empty_selection_means_all_materials(monkeypatch):
+    """None / [] / "" / [""] must all mean "all available materials" and never
+    surface a reranker HTTP error; zero candidates must produce the honest
+    no-evidence message."""
+    calls = []
+    monkeypatch.setattr(app.retrieve, 'endpoint_ready', lambda _: True)
+
+    def retrieve(query, **kwargs):
+        calls.append(kwargs)
+        return []
+
+    monkeypatch.setattr(app.retrieve, 'retrieve', retrieve)
+
+    for empty in (None, [], "", [""]):
+        answer, images, _ = app.answer_qa('Why?', empty, '', True, True)
+        assert calls[-1]['docs'] is None
+        assert images == []
+        assert 'No matching material found' in answer
+        assert 'Something went wrong' not in answer
+
+    # a selected document is passed through as a clean list
+    answer, _, _ = app.answer_qa('Why?', 'doc', '', True, True)
+    assert calls[-1]['docs'] == ['doc']
+
+
+def test_answer_qa_zero_candidates_is_honest_not_http_error(monkeypatch):
+    """When retrieval genuinely returns nothing, the app says so plainly and
+    does not expose a raw HTTP error."""
+    monkeypatch.setattr(app.retrieve, 'endpoint_ready', lambda _: True)
+    monkeypatch.setattr(app.retrieve, 'retrieve', lambda *a, **k: [])
+    answer, images, _ = app.answer_qa('What is LoRA?', None, '', True, True)
+    assert 'No matching material found' in answer
+    assert 'HTTP' not in answer
+    assert images == []
+
 def test_empty_library_quiz_is_readable_not_file_error(tmp_path, monkeypatch):
     monkeypatch.setattr(app.config, 'PROJECT_ROOT', tmp_path)
     monkeypatch.setattr(app.retrieve, 'endpoint_ready', lambda _: True)

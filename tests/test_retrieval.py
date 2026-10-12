@@ -81,3 +81,44 @@ def test_retrieve_no_match_returns_empty(pdf_file, tmp_path):
     library.add_document(pdf_file, lib_dir, out, render=False)
     hits = retrieve("zzzz nonexistent term qqqq", bm25_dir=out / "indexes" / "bm25")
     assert hits == []
+
+
+def test_retrieve_skips_rerank_with_zero_candidates(pdf_file, tmp_path, monkeypatch):
+    """Zero candidates must never call the reranker (it rejects empty lists
+    with HTTP 400); retrieval should return [] instead of raising."""
+    from src import config, library
+    import src.embeddings as embeddings
+
+    lib_dir, out = tmp_path / "library", tmp_path / "out"
+    library.add_document(pdf_file, lib_dir, out, render=False)
+    bm25_dir = out / "indexes" / "bm25"
+
+    # make the reranker "ready" so the candidate guard is the only thing
+    # preventing the call
+    monkeypatch.setattr(config, "RERANK_BASE_URL", "http://example.invalid:9004/v1")
+    monkeypatch.setattr(config, "RERANK_API_KEY", "«redacted:rk-…»")
+    monkeypatch.setattr(config, "RERANK_MODEL", "example/rerank-model")
+    called = []
+    monkeypatch.setattr(
+        embeddings, "rerank",
+        lambda query, cands: called.append(len(cands)) or cands,
+    )
+
+    # a doc filter that matches nothing -> zero candidates -> no rerank call
+    hits = retrieve("retrieval augmented generation", docs=["no_such_doc"],
+                    bm25_dir=bm25_dir, use_rerank=True)
+    assert hits == []
+    assert called == []
+
+    # same for an empty-string filter (the app now normalizes this away, but
+    # retrieval itself must stay safe for any caller)
+    hits = retrieve("retrieval augmented generation", docs=[""],
+                    bm25_dir=bm25_dir, use_rerank=True)
+    assert hits == []
+    assert called == []
+
+    # non-empty candidates still hit the reranker
+    hits = retrieve("retrieval augmented generation", bm25_dir=bm25_dir,
+                    use_rerank=True)
+    assert hits
+    assert called  # rerank was called for real candidates

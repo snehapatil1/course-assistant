@@ -13,6 +13,12 @@ outputs/indexes/
 outputs/raw/
 outputs/tmp_convert/
 
+# --- app-generated library state (regenerable; never inherit stale state) ---
+# Fresh clones must start with an EMPTY library: manifest.json and chunks.json
+# are rebuilt automatically by the app on first add/rebuild. Do not track them.
+outputs/manifest.json
+outputs/chunks.json
+
 # --- user library (students' uploaded course materials; managed by the app) ---
 data/library/
 

@@ -145,7 +145,7 @@ def retrieve(
         if cid in chunks_by_id
     ]
 
-    if use_rerank and endpoint_ready("rerank"):
+    if use_rerank and candidates and endpoint_ready("rerank"):
         from src.embeddings import rerank
 
         candidates = rerank(query, [c.__dict__ for c in candidates])
