@@ -413,6 +413,11 @@ def refresh_library_ui():
             library_overview(), library_inventory_html())
 
 
+def refresh_all():
+    """Refresh the library AND reset the upload area and status to defaults."""
+    return (gr.update(value=None), gr.update(value=''), *refresh_library_ui())
+
+
 def upload_dashboard(files):
     message, _ = on_upload(files)
     return message, *refresh_library_ui()
@@ -512,7 +517,8 @@ def build_app() -> gr.Blocks:
         library_outputs = [doc_dropdown, qa_material, quiz_material, overview, inventory]
         save.click(upload_dashboard, upload, [status, *library_outputs], api_name='save_materials')
         remove.click(remove_dashboard, doc_dropdown, [status, *library_outputs], api_name='remove_material')
-        refresh.click(refresh_library_ui, outputs=library_outputs, api_name='refresh_library')
+        refresh.click(refresh_all, outputs=[upload, status, *library_outputs],
+                      api_name='refresh_library')
     return demo
 
 
