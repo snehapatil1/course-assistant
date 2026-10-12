@@ -81,3 +81,46 @@ def test_retrieve_no_match_returns_empty(pdf_file, tmp_path):
     library.add_document(pdf_file, lib_dir, out, render=False)
     hits = retrieve("zzzz nonexistent term qqqq", bm25_dir=out / "indexes" / "bm25")
     assert hits == []
+
+
+def test_retrieve_no_leg_hits_returns_empty_without_rerank(tmp_path, monkeypatch):
+    """A query that matches nothing in any leg must return [] (and NEVER call
+    the reranker with an empty document list - that produced a raw HTTP 400
+    error to the user instead of the friendly no-match message)."""
+    import json
+
+    from src.indexes import build_bm25
+
+    idx = tmp_path / "bm25"
+    corpus = [{"chunk_id": "w3__p0001__c0001", "doc": "w3__p0001",
+               "doc_title": "Week 3", "kind": "slide", "page_no": 1,
+               "text": "Few-shot prompting offers examples in the prompt.",
+               "image_path": "outputs/pages/w3__p0001__c0001.png"}]
+    build_bm25(corpus, out_dir=idx)
+    (idx / "corpus_meta.json").write_text(json.dumps(corpus))
+
+    monkeypatch.setattr("src.retrieve.endpoint_ready", lambda _: True)
+    called = []
+
+    class EmptyCol:
+        def query(self, *a, **k):
+            return {"ids": [[]], "distances": [[]]}
+
+    def fake_chroma():
+        return None
+
+    monkeypatch.setattr("src.retrieve.get_chroma", fake_chroma)
+    monkeypatch.setattr("src.retrieve.get_text_collection", lambda c: EmptyCol())
+    monkeypatch.setattr("src.retrieve.get_visual_collection", lambda c: EmptyCol())
+
+    def fake_rerank(*a, **k):
+        called.append(a)
+        raise AssertionError("rerank must not be called with no candidates")
+
+    monkeypatch.setattr("src.embeddings.rerank", fake_rerank)
+    import numpy as np
+    monkeypatch.setattr("src.embeddings.embed_query", lambda q: np.full(16, 0.1))
+
+    hits = retrieve("completely unrelated topic", bm25_dir=idx)
+    assert hits == []
+    assert called == []

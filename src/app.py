@@ -141,6 +141,17 @@ def refresh_docs() -> gr.Dropdown:
 # --------------------------------------------------------------------------- #
 # Q&A tab
 # --------------------------------------------------------------------------- #
+def _norm_docs(doc_id) -> list[str] | None:
+    """Normalize the materials selector: '', [], garbage -> None (all materials).
+
+    An empty string must NOT become [''] - that docs filter matches nothing
+    and silently empties every retrieval leg.
+    """
+    selected = [doc_id] if isinstance(doc_id, str) else (doc_id or [])
+    selected = [d for d in selected if isinstance(d, str) and d.strip()]
+    return selected or None
+
+
 def answer_qa(question: str, doc_id: str, topic: str, rerank: bool,
               images_on: bool) -> tuple[str, list, gr.Dropdown]:
     if not question.strip():
@@ -151,7 +162,7 @@ def answer_qa(question: str, doc_id: str, topic: str, rerank: bool,
     query = f"{topic}: {question}" if topic.strip() else question
     try:
         candidates = retrieve.retrieve(
-            query, docs=([doc_id] if isinstance(doc_id, str) else doc_id) or None, use_rerank=rerank
+            query, docs=_norm_docs(doc_id), use_rerank=rerank
         )
     except Exception as exc:  # noqa: BLE001 - surface honest, readable errors
         import traceback
@@ -161,8 +172,8 @@ def answer_qa(question: str, doc_id: str, topic: str, rerank: bool,
                 f"(details in outputs/app.log). If the library is empty, add "
                 f"materials in the Materials tab first."), [], gr.update()
     if not candidates:
-        return ("No matching material found in the library for this question. "
-                "Try a different question or add more documents in the Materials tab."), [], gr.update()
+        return ("Cannot find course materials corresponding to this query. "
+                "Please add it in the Materials tab first."), [], gr.update()
 
     try:
         result = qa.answer_question(question, candidates, include_images=images_on)
