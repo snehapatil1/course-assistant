@@ -418,3 +418,21 @@ Full live run on Savannah's machine with the class endpoints configured (chat 90
   no-match branch; docs passes as None). Suite 112 passed / 4 skipped.
 - Live /ask verified: "What is quantization?" and "How is the course graded?"
   answer correctly from the uploaded materials (syllabus grading breakdown).
+
+## Step (2026-10-12) - THE quiz gap root cause: flex-grow on workspace blocks
+- User: the vertical gap exists ONLY for 1- and 2-question quizzes. Reproduced
+  on the current build at n=1: gapTitleQ1 = 123px while n=3 was tight.
+- Cause: PR #12's rule `#quiz-workspace .block {flex:1 1 auto!important}`
+  (added to fix horizontal overflow) makes EVERY block grow on the MAIN axis.
+  In a flex COLUMN the workspace card stretches to the row height; with fewer
+  questions the content is shorter than the card, so the heading and quiz-view
+  blocks inflate (~90px each) -> big white bands. With 3+ questions the content
+  fills the card and the slack is ~0, which is why only n=1/2 were affected.
+- Fix: `flex:1 1 auto` -> `flex:0 1 auto` for #quiz-workspace .block, in BOTH
+  dashboard.css and the in-band _QUIZ_LAYOUT_CSS (so stale tabs get it too).
+  Also pinned justify/align-content:flex-start (already in-place rules).
+- Verified at the user's window (1512x1078): n=1/2/3 ALL render identically
+  tight - heading->title 6px, title->Q1 39px, correct radio counts.
+- The earlier 'stale cached frontend' theory was wrong/insufficient: the gap
+  reproduced on a completely fresh origin with the current frontend.
+- App now serves on port 7861 (cache-busting relocation, kept).

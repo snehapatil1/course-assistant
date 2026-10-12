@@ -61,14 +61,14 @@ _QUIZ_LOADING_HTML = """
 # rules travel with each generation - a stale tab always renders the same
 # compact layout. Scoped to #quiz-workspace so nothing leaks to other tabs.
 _QUIZ_LAYOUT_CSS = """
-#quiz-workspace {gap:10px!important;}
+#quiz-workspace {gap:10px!important;justify-content:flex-start!important;align-content:flex-start!important;}
 #quiz-workspace > .block.panel-title {padding:0!important;}
 #quiz-workspace > .block:nth-child(2) {margin-top:-10px!important;} /* title flush under the heading */
 #quiz-workspace > .block.panel-title :is(h1,h2,h3,h4) {margin:2px 0!important;}
 #quiz-workspace .quiz-headline {margin:0 0 2px 0!important;font-size:17px;line-height:1.35;}
 #quiz-workspace .quiz-sub {margin:0 0 2px 0!important;font-size:13px;color:#64748b;}
 #quiz-workspace .prose {margin:0!important;}
-#quiz-workspace .block {margin:0!important;padding-top:4px!important;}
+#quiz-workspace .block {margin:0!important;padding-top:4px!important;flex:0 1 auto!important;height:auto!important;}
 #quiz-workspace .form fieldset {padding:2px 0!important;}
 #quiz-workspace .block [data-testid="block-info"] {margin:0!important;padding:2px 0!important;line-height:1.35!important;}
 #quiz-workspace .form .wrap {padding-top:0!important;gap:2px!important;}
@@ -524,7 +524,7 @@ def build_app() -> gr.Blocks:
 
 def main() -> None:
     build_app().queue(default_concurrency_limit=1).launch(
-        server_name='127.0.0.1', server_port=None, share=False,
+        server_name='127.0.0.1', server_port=7861, share=False,
         inbrowser='--no-browser' not in sys.argv, show_error=False,
         head=f'<style>{CSS}</style>', theme=gr.themes.Soft(primary_hue='blue'),
         footer_links=[], blocked_paths=[str(ROOT / '.env'), str(ROOT / '.git')])
