@@ -80,7 +80,7 @@ def test_real_client_master_upload_dedupe_remove_and_quiz(tmp_path, monkeypatch,
         graded = client.predict('B', None, None, None, None, api_name='/grade_quiz')
         assert 'Score: 1 / 1' in graded and 'PRIVATE-FIXTURE' in graded
         removed = client.predict(doc_id, api_name='/remove_material')
-        assert 'purged' in removed[0]
+        assert 'Removed' in removed[0]
         assert '<tr data-doc-id=' not in removed[5]
         assert '<tr data-doc-id=' not in client.predict(api_name='/refresh_library')[-1]
         assert listing(out) == [] and not list(library_dir.glob('*.pdf'))

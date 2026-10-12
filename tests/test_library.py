@@ -107,3 +107,54 @@ def test_list_documents_metadata(pdf_file, pptx_file, tmp_path):
     assert len(docs) == 2
     assert {d["kind"] for d in docs} == {"page", "slide"}
     assert all(d["units"] >= 1 for d in docs)
+
+
+# --- Targeted removal: never blocks on manifest/index drift -------------------
+
+def test_remove_succeeds_with_orphan_index_records(tmp_path, monkeypatch):
+    """The historical guard blocked removal when the BM25 corpus contained
+    doc_ids absent from the manifest (git-tracked manifests drifted from the
+    runtime library). Removal must purge only the target and PRESERVE the
+    unrelated index records."""
+    import json
+
+    from src.indexes import build_bm25
+
+    out = tmp_path / "outputs"
+    lib = tmp_path / "library"
+    (out / "indexes" / "bm25").mkdir(parents=True)
+    (out / "pages").mkdir()
+    lib.mkdir()
+    manifest = [
+        {"doc_id": "doc_a__11111111", "doc_title": "A",
+         "page_id": "doc_a__11111111__p0001", "page_no": 1,
+         "stored_file": "doc_a__11111111.pdf", "kind": "page"},
+    ]
+    (out / "manifest.json").write_text(json.dumps(manifest))
+    (lib / "doc_a__11111111.pdf").write_bytes(b"%PDF-fake")
+    corpus = [
+        # orphan: indexed but NOT in the manifest - must survive removal of A
+        {"doc": "doc_b__22222222", "doc_title": "B", "page_no": 2,
+         "kind": "slide", "chunk_id": "b1", "text": "orphan chunk"},
+        {"doc": "doc_a__11111111", "doc_title": "A", "page_no": 1,
+         "kind": "page", "chunk_id": "a1", "text": "a chunk"},
+    ]
+    (out / "indexes" / "bm25" / "corpus_meta.json").write_text(json.dumps(corpus))
+    build_bm25(corpus, out_dir=out / "indexes" / "bm25")
+    (out / "chunks.json").write_text(json.dumps(corpus))
+
+    from src import library
+    monkeypatch.setattr(library.config, "require_endpoint",
+                        lambda kind: (_ for _ in ()).throw(RuntimeError("off")))
+
+    result = library.remove_document("doc_a__11111111",
+                                     library_dir=lib, out_dir=out)
+    assert result["status"] == "removed"
+    assert not (lib / "doc_a__11111111.pdf").exists()
+    assert json.loads((out / "manifest.json").read_text()) == []
+    from src.indexes import load_bm25
+    meta = json.loads((out / "indexes" / "bm25" / "corpus_meta.json").read_text())
+    assert [c["doc"] for c in meta] == ["doc_b__22222222"], \
+        "unrelated index records must survive a targeted removal"
+    chunks = json.loads((out / "chunks.json").read_text())
+    assert [c["doc"] for c in chunks] == ["doc_b__22222222"]
