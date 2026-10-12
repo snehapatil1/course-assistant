@@ -15,6 +15,18 @@ body {background:var(--ca-bg)!important;}
 .brand small {display:block;font-size:11px;letter-spacing:1.6px;font-weight:500;color:#d6e5f7;margin-top:3px;}
 #theme-mode {background:#18395e!important;border:1px solid #6c8aae!important;border-radius:10px!important;padding:7px 10px!important;min-width:205px!important;flex-grow:0!important;}
 #theme-mode span,#theme-mode label {color:#fff!important;font-size:12px!important;}
+/* The "Appearance" label: white text on a SOLID blue chip, identical in both
+   modes (no theme-conditional rules) - it must never wash out over the hero. */
+#theme-mode > span {
+  color:#fff!important;
+  background:#18395e!important;
+  border:1px solid #6c8aae!important;
+  border-radius:6px!important;
+  padding:1px 8px!important;
+  display:inline-block!important;
+  line-height:1.5!important;
+  text-shadow:none!important;
+}
 #theme-mode label {background:transparent!important;border-color:#7894b6!important;}
 #theme-mode label.selected {background:#3166a4!important;}
 .course-header {border:0;padding:23px 0 16px;margin:0;}

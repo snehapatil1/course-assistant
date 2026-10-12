@@ -431,7 +431,7 @@ def remove_dashboard(doc_id):
 def build_app() -> gr.Blocks:
     with gr.Blocks(title='Course Assistant', analytics_enabled=False) as demo:
         with gr.Row(elem_id='topbar'):
-            gr.HTML('<div class="brand"><span class="brand-mark" aria-hidden="true">⌁</span><div>Course Assistant<small>MBAX 6418 · STUDY WORKSPACE</small></div></div>')
+            gr.HTML('<div class="brand"><span class="brand-mark" aria-hidden="true">⌁</span><div>Course Assistant<small>STUDY WORKSPACE</small></div></div>')
             theme_mode = gr.Radio(['Light', 'Dark'], value='Light', label='Appearance', elem_id='theme-mode', scale=0, min_width=210)
         demo.load(fn=None, outputs=theme_mode, js=THEME_JS)
         theme_mode.change(fn=None, inputs=theme_mode, js=THEME_JS)
