@@ -363,3 +363,58 @@ Full live run on Savannah's machine with the class endpoints configured (chat 90
   screenshots in outputs/screenshots/ (OCR-confirmed content).
 - Limitations (honest): failed-generation reset covered by unit test only;
   branch not yet pushed / no PR; 2 gradio-client tests skipped (pre-existing).
+
+## Step (2026-10-08) — Remove document no longer blocked by manifest/index drift
+- Symptom: Materials tab -> Remove -> "Not removed: rebuilding indexes would
+  discard unrelated historical records".
+- Root cause: outputs/manifest.json + chunks.json are git-TRACKED (teammates
+  committed their library state). Every pull/merge clobbered the local runtime
+  manifest (phantom week-2/6/syllabus records) while data/library +
+  outputs/indexes (gitignored) kept the real local library (week-3) - so the
+  BM25 corpus always contained doc_ids absent from the manifest and the
+  removal guard blocked EVERY removal.
+- Fix (src/library.py remove_document): targeted purge - filter corpus_meta.json
+  + chunks.json by doc_id, rebuild BM25 from the filtered corpus (unrelated
+  historical rows PRESERVED, never blocked), delete images, stored original,
+  manifest rows, chroma rows. not_found only when nothing exists for the id.
+- Runtime isolation: `git update-index --skip-worktree outputs/manifest.json
+  outputs/chunks.json` so future pulls can no longer resurrect phantom
+  manifests on this machine.
+- Reconcile: `src.library rebuild` -> manifest/chunks/bm25/vectors == local
+  library (week-3 deck, 33 units).
+- Verified live: removed a throwaway Quiz-1 PDF via the UI ("removed ... 2
+  page(s) purged") -> survives hard reload; week-3 intact (33 chunks);
+  suite 109 passed / 4 skipped. NOTE: first browser attempt selected the wrong
+  dropdown row and removed week-3; restored from the original attachment
+  (33 pages rendered, vectors ok) before the verified run.
+
+## Step (2026-10-10) - Out-of-materials Q&A: friendly + honest, never raw errors
+- Bug: an unrelated question with zero hits in every leg reached the reranker
+  with an empty documents list -> HTTP 400 surfaced raw ("Something went
+  wrong while searching the library ... rerank -> HTTP 400").
+- src/retrieve.py: `if not fused: return []` (no candidates => no rerank call);
+  rerank skipped when candidates empty; rerank wrapped in try/except -> on
+  endpoint failure fall back to fused order (reranker is an enhancement, a
+  hiccup must not break Q&A).
+- src/app.py: no-match message is now exactly "Cannot find course materials
+  corresponding to this query. Please add it in the Materials tab first."
+- src/qa.py: when the model refuses with the bare marker (no JSON), return the
+  canonical "Not found in the provided materials." result instead of raising
+  "no JSON object in model response".
+- Tests: +2 (retrieval no-leg-hits returns [] without calling rerank; bare
+  refusal canonicalized). Suite 111 passed / 4 skipped. Live /ask verified:
+  two unrelated questions -> clean honest refusal, no raw error.
+
+## Step (2026-10-10) - Q&A: empty material selection no longer empties retrieval
+- Regression: EVERY question returned the no-match message. Root cause: the
+  empty selector '' became docs=[''] ('' or None shortcut) and that docs
+  filter matched nothing in every leg -> fused empty -> early return [].
+  The SAME bug produced the original rerank-400 (empty candidates -> rerank
+  with [] documents): a one-line normalization error at the app layer.
+- Fix (src/app.py): _norm_docs() - '', [], [''] all normalize to None (all
+  materials); real selections pass through. Q&A original functionality
+  (grounded answers, doc filter, rerank, images) is untouched.
+- Test: hermetic regression (docs captured; '', [], [''] all must not hit the
+  no-match branch; docs passes as None). Suite 112 passed / 4 skipped.
+- Live /ask verified: "What is quantization?" and "How is the course graded?"
+  answer correctly from the uploaded materials (syllabus grading breakdown).
