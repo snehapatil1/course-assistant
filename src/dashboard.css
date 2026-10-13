@@ -15,6 +15,18 @@ body {background:var(--ca-bg)!important;}
 .brand small {display:block;font-size:11px;letter-spacing:1.6px;font-weight:500;color:#d6e5f7;margin-top:3px;}
 #theme-mode {background:#18395e!important;border:1px solid #6c8aae!important;border-radius:10px!important;padding:7px 10px!important;min-width:205px!important;flex-grow:0!important;}
 #theme-mode span,#theme-mode label {color:#fff!important;font-size:12px!important;}
+/* The "Appearance" label: white text on a SOLID blue chip, identical in both
+   modes (no theme-conditional rules) - it must never wash out over the hero. */
+#theme-mode > span {
+  color:#fff!important;
+  background:#18395e!important;
+  border:1px solid #6c8aae!important;
+  border-radius:6px!important;
+  padding:1px 8px!important;
+  display:inline-block!important;
+  line-height:1.5!important;
+  text-shadow:none!important;
+}
 #theme-mode label {background:transparent!important;border-color:#7894b6!important;}
 #theme-mode label.selected {background:#3166a4!important;}
 .course-header {border:0;padding:23px 0 16px;margin:0;}
@@ -59,7 +71,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible {outline:3px sol
 #quiz-workspace [data-testid="status-tracker"],
 #quiz-workspace .progress-text {display:none!important;}
 /* Tighten quiz layout: questions start right under the workspace start line. */
-#quiz-workspace {gap:10px!important;}
+#quiz-workspace {gap:10px!important;justify-content:flex-start!important;align-content:flex-start!important;}
 #quiz-workspace > .block.panel-title {padding:0!important;}
 #quiz-workspace > .block:nth-child(2) {margin-top:-10px!important;} /* title flush under the heading */
 #quiz-workspace > .block.panel-title :is(h1,h2,h3,h4) {margin:2px 0!important;}
@@ -74,7 +86,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible {outline:3px sol
 #quiz-workspace input[type=radio] {flex-shrink:0;margin-top:4px;}
 /* Gradio's radio option containers often clamp height/width — override aggressively. */
 #quiz-workspace .wrap {overflow:visible!important;white-space:normal!important;}
-#quiz-workspace .block {min-width:0!important;max-width:100%!important;flex:1 1 auto!important;height:auto!important;min-height:0!important;}
+#quiz-workspace .block {min-width:0!important;max-width:100%!important;flex:0 1 auto!important;height:auto!important;min-height:0!important;}
 /* Radio button option labels — force wrap on all descendants */
 #quiz-workspace [class*="option"],#quiz-workspace [class*="radio"] {white-space:normal!important;overflow-wrap:anywhere!important;}
 #quiz-workspace [class*="option"] span,#quiz-workspace [class*="option"] p,#quiz-workspace [class*="option"] div,#quiz-workspace [class*="radio"] span,#quiz-workspace [class*="radio"] p,#quiz-workspace [class*="radio"] div {white-space:normal!important;overflow-wrap:anywhere!important;display:block!important;}

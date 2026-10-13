@@ -80,7 +80,7 @@ def test_real_client_master_upload_dedupe_remove_and_quiz(tmp_path, monkeypatch,
         graded = client.predict('B', None, None, None, None, api_name='/grade_quiz')
         assert 'Score: 1 / 1' in graded and 'PRIVATE-FIXTURE' in graded
         removed = client.predict(doc_id, api_name='/remove_material')
-        assert 'purged' in removed[0]
+        assert 'Removed' in removed[0]
         assert '<tr data-doc-id=' not in removed[5]
         assert '<tr data-doc-id=' not in client.predict(api_name='/refresh_library')[-1]
         assert listing(out) == [] and not list(library_dir.glob('*.pdf'))
@@ -94,3 +94,30 @@ def test_dashboard_reports_real_unconfigured_status():
     answer, sources, images = app.answer_dashboard('Why?', '', '', True, True)
     assert 'not configured' in answer
     assert images == []
+
+
+def test_empty_material_selection_must_not_filter_all_chunks(monkeypatch):
+    """doc_id '' / [] must be treated as 'all materials' - the old code turned
+    '' into [''], which the docs filter applied to every leg, so EVERY question
+    returned 'Cannot find course materials corresponding to this query'."""
+    from src import app, qa
+    from src.retrieve import Candidate
+
+    captured = {}
+
+    def fake_retrieve(query, docs, use_rerank):
+        captured["docs"] = docs
+        return [Candidate(chunk_id="x__p0001__c0001", doc="x", doc_title="X",
+                          kind="slide", page_no=1, text="quantization reduces size",
+                          image_path="outputs/pages/x__p0001.png")]
+
+    monkeypatch.setattr(app.retrieve, "retrieve", fake_retrieve)
+    monkeypatch.setattr(app.retrieve, "endpoint_ready", lambda _: True)
+    monkeypatch.setattr(qa, "answer_question",
+                        lambda *a, **k: {"answer": "quantization reduces size",
+                                         "sources": [], "valid": True,
+                                         "validation_errors": []})
+    for empty in ("", [], [""]):
+        text, _, _ = app.answer_qa("What is quantization?", empty, "", True, True)
+        assert "Cannot find course materials" not in text, f"docs={empty!r} failed"
+        assert captured["docs"] is None
