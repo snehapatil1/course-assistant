@@ -310,3 +310,18 @@ def test_answer_question_enriches_sources_from_evidence():
     assert src["kind"] == "slide"
     assert src["image_path"] == "outputs/pages/doc_a__p0001.png"
     assert src["chunk_id"].startswith("doc_a")
+
+
+def test_bare_refusal_is_canonicalized_not_an_error():
+    """When the model refuses WITHOUT JSON (just the marker), answer_question
+    must return the canonical honest refusal - not raise a parse error."""
+    from src import qa
+
+    def chat_fn(messages, **kwargs):
+        return "Not found in the provided materials."
+
+    result = qa.answer_question("unrelated topic", _candidates(),
+                                chat_fn=chat_fn, include_images=False)
+    assert result["valid"] is True
+    assert result["answer"] == qa.NOT_FOUND_MARKER
+    assert result["sources"] == []

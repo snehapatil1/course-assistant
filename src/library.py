@@ -210,23 +210,54 @@ def remove_document(
     library_dir: Path = config.LIBRARY_DIR,
     out_dir: Path = config.OUTPUTS_DIR,
 ) -> dict:
-    """Remove a document and ALL of its searchable content."""
+    """Remove a document and ALL of its searchable content.
+
+    Targeted purge: only this document's rows are deleted from the manifest,
+    chunks.json, the BM25 corpus, rendered images, the stored original, and
+    (when configured) the vector indexes. The BM25 index is rebuilt from the
+    FILTERED corpus metadata, so unrelated historical index records are never
+    discarded and removal never needs to block on manifest/index drift.
+    """
     library_dir = Path(library_dir)
     out_dir = Path(out_dir)
 
     pages = load_manifest(out_dir)
     doc_pages = [p for p in pages if p["doc_id"] == doc_id]
-    if not doc_pages:
-        return {"status": "not_found", "doc_id": doc_id,
-                "message": "Not removed: this record has no active document. Index-only and unprocessed upload records cannot be removed here."}
 
-    active_ids = {p['doc_id'] for p in pages}
-    index_path = out_dir / 'indexes' / 'bm25' / 'corpus_meta.json'
-    if index_path.exists():
-        indexed_ids = {c['doc'] for c in json.loads(index_path.read_text(encoding='utf-8'))}
-        if indexed_ids - active_ids:
-            return {"status": "blocked", "doc_id": doc_id,
-                    "message": "Not removed: rebuilding indexes would discard unrelated historical records. Back up and reconcile the library before removal."}
+    # BM25 corpus: drop this document's rows and rebuild from what remains.
+    # corpus_meta.json is the index's own record (outputs/indexes/ is not
+    # git-tracked), so it reflects the runtime truth even when git-tracked
+    # manifest/chunks files have drifted on some machines.
+    from src.indexes import build_bm25
+
+    index_dir = out_dir / "indexes" / "bm25"
+    corpus_path = index_dir / "corpus_meta.json"
+    corpus_had_rows = False
+    if corpus_path.exists():
+        corpus = json.loads(corpus_path.read_text(encoding="utf-8"))
+        removed_rows = [c for c in corpus if c.get("doc") == doc_id]
+        corpus_had_rows = bool(removed_rows)
+        remaining = [c for c in corpus if c.get("doc") != doc_id]
+        if remaining:
+            build_bm25(remaining, out_dir=index_dir)
+        else:
+            shutil.rmtree(index_dir, ignore_errors=True)
+            index_dir.mkdir(parents=True, exist_ok=True)
+            corpus_path.write_text("[]", encoding="utf-8")
+
+        # keep chunks.json aligned with the surviving corpus so quiz
+        # generation and retrieval read the same documents
+        chunks_path = out_dir / "chunks.json"
+        if chunks_path.exists():
+            chunks = json.loads(chunks_path.read_text(encoding="utf-8"))
+            kept = [c for c in chunks if c.get("doc") != doc_id]
+            chunks_path.write_text(
+                json.dumps(kept, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    if not doc_pages and not corpus_had_rows:
+        return {"status": "not_found", "doc_id": doc_id,
+                "message": (f"Not removed: '{doc_id}' has no active document "
+                            "and no index rows to purge.")}
 
     # remove rendered images
     for p in doc_pages:
@@ -240,9 +271,8 @@ def remove_document(
         if stored.exists():
             stored.unlink()
 
-    remaining = [p for p in pages if p["doc_id"] != doc_id]
-    _save_manifest(remaining, out_dir)
-    stats = _refresh_chunks_and_bm25(remaining, out_dir)
+    remaining_pages = [p for p in pages if p["doc_id"] != doc_id]
+    _save_manifest(remaining_pages, out_dir)
 
     # drop the document from the vector indexes when configured
     try:
@@ -256,14 +286,20 @@ def remove_document(
     except RuntimeError:
         vector = "skipped"
 
+    removed_units = len(doc_pages)
+    message = (f"Removed '{doc_pages[0]['doc_title']}'"
+               if doc_pages else
+               f"Removed '{doc_id}': index-only record purged; no active "
+               f"document remained")
     return {
         "status": "removed",
         "doc_id": doc_id,
-        "removed_units": len(doc_pages),
-        "chunks_remaining": stats["chunks"],
+        "removed_units": removed_units,
+        "chunks_remaining": len(json.loads(
+            (out_dir / "chunks.json").read_text(encoding="utf-8")))
+        if (out_dir / "chunks.json").exists() else 0,
         "vector_indexes": vector,
-        "message": f"removed '{doc_pages[0]['doc_title']}': {len(doc_pages)} page(s) "
-                   f"purged from manifest, chunks, images, and indexes",
+        "message": message,
     }
 
 

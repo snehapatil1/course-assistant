@@ -15,6 +15,18 @@ body {background:var(--ca-bg)!important;}
 .brand small {display:block;font-size:11px;letter-spacing:1.6px;font-weight:500;color:#d6e5f7;margin-top:3px;}
 #theme-mode {background:#18395e!important;border:1px solid #6c8aae!important;border-radius:10px!important;padding:7px 10px!important;min-width:205px!important;flex-grow:0!important;}
 #theme-mode span,#theme-mode label {color:#fff!important;font-size:12px!important;}
+/* The "Appearance" label: white text on a SOLID blue chip, identical in both
+   modes (no theme-conditional rules) - it must never wash out over the hero. */
+#theme-mode > span {
+  color:#fff!important;
+  background:#18395e!important;
+  border:1px solid #6c8aae!important;
+  border-radius:6px!important;
+  padding:1px 8px!important;
+  display:inline-block!important;
+  line-height:1.5!important;
+  text-shadow:none!important;
+}
 #theme-mode label {background:transparent!important;border-color:#7894b6!important;}
 #theme-mode label.selected {background:#3166a4!important;}
 .course-header {border:0;padding:16px 0 10px;margin:0;}
@@ -50,14 +62,16 @@ button:focus-visible,input:focus-visible,textarea:focus-visible {outline:3px sol
 #library-inventory th:first-child {width:47%;}
 #library-inventory th:nth-child(2) {width:14%;}
 #library-inventory small {display:block;color:var(--ca-muted);font-size:10px;margin-top:5px;}
-/* ── Quiz workspace — root-cause fix: kill flex stretch ─
-   Gradio radio buttons use flex:1 on option containers,
-   which stretches them to fill available height. With only
-   1-2 questions the workspace looks empty. We reset ALL
-   height/flex/align on every container in #quiz-workspace.
-   ─────────────────────────────────────────────────────── */
-
-#quiz-workspace {gap:8px!important;padding-bottom:12px!important;}
+/* Radio option flex children otherwise retain their min-content width. */
+#quiz-workspace .prose,#quiz-evidence .prose {overflow-wrap:anywhere;white-space:normal;}
+#quiz-workspace label {width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;align-items:flex-start!important;display:block!important;white-space:normal!important;}
+#quiz-workspace label span,#quiz-workspace label p,#quiz-workspace label div {min-width:0!important;white-space:normal!important;overflow-wrap:anywhere!important;overflow:visible!important;display:block!important;}
+#quiz-workspace label span {display:inline!important;} /* text next to the circle, still wraps */
+/* Hide Gradio's transient queue/status chrome ("processing | N/Ns") inside the workspace. */
+#quiz-workspace [data-testid="status-tracker"],
+#quiz-workspace .progress-text {display:none!important;}
+/* Tighten quiz layout: questions start right under the workspace start line. */
+#quiz-workspace {gap:10px!important;justify-content:flex-start!important;align-content:flex-start!important;}
 #quiz-workspace > .block.panel-title {padding:0!important;}
 #quiz-workspace > .block:nth-child(2) {margin-top:-8px!important;}
 #quiz-workspace > .block.panel-title :is(h1,h2,h3,h4) {margin:2px 0!important;}
@@ -74,26 +88,18 @@ button:focus-visible,input:focus-visible,textarea:focus-visible {outline:3px sol
 #quiz-workspace [data-testid="status-tracker"],
 #quiz-workspace .progress-text {display:none!important;}
 #quiz-workspace input[type=radio] {flex-shrink:0;margin-top:4px;}
-#quiz-workspace .wrap {overflow:visible!important;white-space:normal!important;height:auto!important;min-height:0!important;}
-
-/* Force ALL flex children inside quiz-workspace to shrink-to-content */
-#quiz-workspace .form,
-#quiz-workspace .form fieldset,
-#quiz-workspace .form .wrap,
-#quiz-workspace label,
-#quiz-workspace .option,
-#quiz-workspace .prose,
-#quiz-workspace [data-testid="block-info"],
-#quiz-workspace [class*="option"],
-#quiz-workspace [class*="radio"],
-#quiz-workspace .radio {
-  flex: 0 0 auto!important;
-  height:auto!important;
-  min-height:0!important;
-  max-height:none!important;
-  align-self:auto!important;
-  align-items:flex-start!important;
-}
+/* Gradio's radio option containers often clamp height/width — override aggressively. */
+#quiz-workspace .wrap {overflow:visible!important;white-space:normal!important;}
+#quiz-workspace .block {min-width:0!important;max-width:100%!important;flex:0 1 auto!important;height:auto!important;min-height:0!important;}
+/* Radio button option labels — force wrap on all descendants */
+#quiz-workspace [class*="option"],#quiz-workspace [class*="radio"] {white-space:normal!important;overflow-wrap:anywhere!important;}
+#quiz-workspace [class*="option"] span,#quiz-workspace [class*="option"] p,#quiz-workspace [class*="option"] div,#quiz-workspace [class*="radio"] span,#quiz-workspace [class*="radio"] p,#quiz-workspace [class*="radio"] div {white-space:normal!important;overflow-wrap:anywhere!important;display:block!important;}
+/* Gradio 4 radio buttons: label text (question) and option text must wrap */
+#quiz-workspace .wrap .label span,#quiz-workspace .wrap .label p {white-space:normal!important;overflow-wrap:break-word!important;word-break:break-word!important;hyphens:auto!important;display:block!important;max-width:100%!important;min-width:0!important;flex:1 1 auto!important;}
+#quiz-workspace .wrap .options .option .label span,#quiz-workspace .wrap .options .option .label p {white-space:normal!important;overflow-wrap:break-word!important;word-break:break-word!important;display:block!important;max-width:100%!important;min-width:0!important;flex:1 1 auto!important;}
+/* Remove any fixed height constraints */
+#quiz-workspace .wrap {height:auto!important;min-height:0!important;}
+#quiz-workspace .block {height:auto!important;min-height:0!important;}
 @media(max-width:950px){#quiz-filters{flex:1 1 100%!important;}#quiz-workspace{flex:3 1 360px!important;}#quiz-evidence{flex:1 1 220px!important;}}
 @media(max-width:650px){#quiz-workspace,#quiz-evidence{flex:1 1 100%!important;min-width:0!important;}}
 #app-footnote{padding:18px 3px 0!important;}#app-footnote p{font-size:11px!important;color:var(--ca-muted)!important;}
