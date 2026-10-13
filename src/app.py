@@ -23,6 +23,8 @@ from html import escape
 from pathlib import Path
 import os
 import sys
+# Add project root to sys.path so 'from src.*' works when running app.py directly
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 from src.dashboard import Source
 
@@ -61,23 +63,51 @@ _QUIZ_LOADING_HTML = """
 # rules travel with each generation - a stale tab always renders the same
 # compact layout. Scoped to #quiz-workspace so nothing leaks to other tabs.
 _QUIZ_LAYOUT_CSS = """
-#quiz-workspace {gap:10px!important;}
+/* Kill every flex stretch inside quiz workspace — Gradio radio buttons use
+   flex:1 on .option containers, stretching them to fill available height.
+   With 1-2 questions the workspace looks empty. These rules reset all flex
+   /height/align on every container in the workspace tree. */
+#quiz-workspace {gap:10px!important;padding-bottom:12px!important;flex:0 0 auto!important;height:auto!important;min-height:0!important;max-height:none!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;}
+#quiz-workspace .block {margin:0!important;padding-top:4px!important;height:auto!important;min-height:0!important;max-width:100%!important;display:block!important;flex:0 0 auto!important;}
 #quiz-workspace > .block.panel-title {padding:0!important;}
-#quiz-workspace > .block:nth-child(2) {margin-top:-10px!important;} /* title flush under the heading */
+#quiz-workspace > .block:nth-child(2) {margin-top:-10px!important;}
 #quiz-workspace > .block.panel-title :is(h1,h2,h3,h4) {margin:2px 0!important;}
 #quiz-workspace .quiz-headline {margin:0 0 2px 0!important;font-size:17px;line-height:1.35;}
 #quiz-workspace .quiz-sub {margin:0 0 2px 0!important;font-size:13px;color:#64748b;}
+#quiz-workspace .quiz-note {margin:4px 0 0!important;font-size:12.5px;color:#b45309;line-height:1.4;}
 #quiz-workspace .prose {margin:0!important;}
-#quiz-workspace .block {margin:0!important;padding-top:4px!important;}
-#quiz-workspace .form fieldset {padding:2px 0!important;}
-#quiz-workspace .block [data-testid="block-info"] {margin:0!important;padding:2px 0!important;line-height:1.35!important;}
-#quiz-workspace .form .wrap {padding-top:0!important;gap:2px!important;}
-#quiz-workspace label {margin:0!important;padding:3px 2px!important;min-height:0!important;line-height:1.35!important;}
-#quiz-workspace label span {display:inline!important;}
+#quiz-workspace .form {display:block!important;flex:0 0 auto!important;height:auto!important;min-height:0!important;}
+#quiz-workspace .form fieldset {display:block!important;padding:2px 0!important;flex:0 0 auto!important;gap:2px!important;height:auto!important;min-height:0!important;max-height:none!important;}
+#quiz-workspace .form .wrap {display:block!important;flex:0 0 auto!important;gap:2px!important;height:auto!important;min-height:0!important;max-height:none!important;padding-top:0!important;overflow:visible!important;white-space:normal!important;}
+#quiz-workspace label {display:block!important;margin:0!important;padding:3px 2px!important;min-height:0!important;line-height:1.35!important;height:auto!important;flex:0 0 auto!important;align-self:auto!important;white-space:normal!important;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;align-items:flex-start!important;}
+#quiz-workspace label span,#quiz-workspace label p,#quiz-workspace label div {display:inline!important;white-space:normal!important;}
+#quiz-workspace [data-testid="block-info"] {margin:0!important;padding:2px 0!important;line-height:1.35!important;display:block!important;height:auto!important;min-height:0!important;flex:0 0 auto!important;align-self:auto!important;}
+#quiz-workspace input[type=radio] {flex-shrink:0;margin-top:4px;}
 #quiz-workspace [data-testid="status-tracker"],
 #quiz-workspace .progress-text {display:none!important;}
-#quiz-workspace input[type=radio] {flex-shrink:0;margin-top:4px;}
-#quiz-workspace .wrap {overflow:visible!important;white-space:normal!important;}
+/* Gradio radio option containers — the core fix: force every child to
+   shrink-to-content, never stretch vertically */
+#quiz-workspace .option {flex:0 0 auto!important;height:auto!important;min-height:0!important;max-height:none!important;align-self:auto!important;align-items:flex-start!important;display:block!important;white-space:normal!important;overflow-wrap:anywhere!important;}
+#quiz-workspace .option * {flex:0 0 auto!important;white-space:normal!important;overflow-wrap:anywhere!important;}
+#quiz-workspace .option .label span,#quiz-workspace .option .label p,#quiz-workspace .option .label div {display:inline!important;max-width:100%!important;min-width:0!important;flex:0 0 auto!important;white-space:normal!important;}
+/* Fallback: override ANY flex:1 / flex:0 1 auto / flex-grow that Gradio
+   applies to children of .wrap inside the quiz workspace */
+#quiz-workspace .wrap * {flex-basis:auto!important;}
+#quiz-workspace .form *,
+#quiz-workspace .form fieldset *,
+#quiz-workspace .form .wrap *,
+#quiz-workspace label * {
+  flex: 0 0 auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  align-self: auto !important;
+  align-items: flex-start !important;
+  display: block !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+#quiz-workspace .wrap .label span,#quiz-workspace .wrap .label p {white-space:normal!important;overflow-wrap:breakword!important;word-break:breakword!important;display:block!important;max-width:100%!important;min-width:0!important;}
 """
 
 
@@ -211,16 +241,16 @@ def reset_quiz_workspace():
     """
     _QUIZ_STORE.clear()
     return (_QUIZ_LOADING_HTML,
-            *[gr.update(visible=False, choices=[]) for _ in range(MAX_QUESTIONS)],
-            "", _QUIZ_PLACEHOLDER, gr.update(interactive=False))
+            *[gr.update(visible=False, choices=[], value=None) for _ in range(MAX_QUESTIONS)],
+            "", gr.update(interactive=False), 0)
 
 
-def generate_quiz_ui(material: str, topic: str, n_questions: int):
+def generate_quiz_ui(material: str, topic: str, n_questions: int, quiz_counter: int):
     radios = [gr.update(visible=False, choices=[]) for _ in range(MAX_QUESTIONS)]
     if not retrieve.endpoint_ready("chat"):
-        return _endpoint_status_md(), *radios, "", gr.update(interactive=True)
+        return _endpoint_status_md(), *radios, "", gr.update(interactive=True), quiz_counter
     if n_questions < 1 or n_questions > MAX_QUESTIONS:
-        return f"Choose between 1 and {MAX_QUESTIONS} questions.", *radios, "", gr.update(interactive=True)
+        return f"Choose between 1 and {MAX_QUESTIONS} questions.", *radios, "", gr.update(interactive=True), quiz_counter
 
     chunks_path = config.PROJECT_ROOT / "outputs" / "chunks.json"
     chunks = json.loads(chunks_path.read_text(encoding="utf-8")) if chunks_path.exists() else []
@@ -229,7 +259,7 @@ def generate_quiz_ui(material: str, topic: str, n_questions: int):
         chunks = [c for c in chunks if c["doc"] in selected]
     if not chunks:
         return (f"No chunks found for the selected material - add documents in the "
-                "Materials tab first."), *radios, "", gr.update(interactive=True)
+                "Materials tab first."), *radios, "", gr.update(interactive=True), quiz_counter
 
     selected = ([material] if isinstance(material, str) else material) or []
     doc_title = ", ".join(d["title"] for d in library.list_documents() if d["doc_id"] in selected) if selected else "All available materials"
@@ -244,9 +274,10 @@ def generate_quiz_ui(material: str, topic: str, n_questions: int):
                 f"(details in outputs/app.log)."), *radios, "", gr.update(interactive=True)
     _QUIZ_STORE[qz["quiz_id"]] = qz
     view = quiz.to_client_view(qz)
+    seq_num = quiz_counter + 1
 
     parts = [f"<style>{_QUIZ_LAYOUT_CSS}</style>",
-             f"<h3 class='quiz-headline'>Quiz {view.get('canonical_id') or view['quiz_id']} — {view['material_title']}</h3>"]
+             f"<h3 class='quiz-headline'>Quiz {seq_num} — {view['material_title']}</h3>"]
     if view["topic"]:
         parts.append(f"<p class='quiz-sub'>topic: {escape(view['topic'])}</p>")
     parts.append("<p class='quiz-sub'>(Answer below, then press <strong>Grade quiz</strong>. "
@@ -256,11 +287,11 @@ def generate_quiz_ui(material: str, topic: str, n_questions: int):
                      f"color:#b45309;line-height:1.4;'>{escape(qz['topic_note'])}</p>")
 
     upd = [
-        gr.update(visible=True, choices=qview["options"], label=f"Q{i + 1}. {qview['question']}")
+        gr.update(visible=True, choices=qview["options"], label=f"Q{i + 1}. {qview['question']}", value=None)
         for i, qview in enumerate(view["questions"])
     ]
-    upd += [gr.update(visible=False, choices=[]) for _ in range(MAX_QUESTIONS - len(upd))]
-    return "".join(parts), *upd, view["quiz_id"], gr.update(interactive=True)
+    upd += [gr.update(visible=False, choices=[], value=None) for _ in range(MAX_QUESTIONS - len(upd))]
+    return "".join(parts), *upd, view["quiz_id"], gr.update(interactive=True), seq_num, "".join(parts)
 
 
 def grade_quiz(quiz_id: str, *radio_values):
@@ -271,7 +302,10 @@ def grade_quiz(quiz_id: str, *radio_values):
     for i in range(qz["n"]):
         chosen = radio_values[i] if i < len(radio_values) else None
         if chosen is not None:
-            answers[i] = qz["questions"][i]["options"].index(chosen)
+            try:
+                answers[i] = qz["questions"][i]["options"].index(chosen)
+            except ValueError:
+                return f"Error: unrecognized answer for question {i+1}. Please reload the quiz and try again."
     if len(answers) < qz["n"]:
         missing = sorted(set(range(qz["n"])) - set(answers))
         return (f"⚠ Not all questions answered (missing Q{', Q'.join(map(str, [m + 1 for m in missing]))}). "
@@ -281,10 +315,15 @@ def grade_quiz(quiz_id: str, *radio_values):
     md = [f"### Score: {result['score']} / {result['total']}"]
     for r in result["details"]:
         mark = "✅" if r["correct"] else "❌"
+        q = qz["questions"][r["id"]]
+        try:
+            correct_text = q["options"][q["key"]]
+        except (KeyError, IndexError):
+            correct_text = "(unavailable)"
         base = (f"{mark} **{r['question']}**  \n"
                 f"Your answer: {r['your_answer'] + 1 if r['your_answer'] is not None else '—'} · "
                 f"correct option: "
-                f"{qz['questions'][r['id']]['options'][qz['questions'][r['id']]['key']]}  \n"
+                f"{correct_text}  \n"
                 f"*Why:* {r['explanation']}")
         src = r.get("source") or {}
         if src.get("resolved"):
@@ -415,7 +454,7 @@ def remove_dashboard(doc_id):
 def build_app() -> gr.Blocks:
     with gr.Blocks(title='Course Assistant', analytics_enabled=False) as demo:
         with gr.Row(elem_id='topbar'):
-            gr.HTML('<div class="brand"><span class="brand-mark" aria-hidden="true">⌁</span><div>Course Assistant<small>MBAX 6418 · STUDY WORKSPACE</small></div></div>')
+            gr.HTML('<div class="brand"><span class="brand-mark" aria-hidden="true">⌁</span><div>Course Assistant<small>Study Workspace</small></div></div>')
             theme_mode = gr.Radio(['Light', 'Dark'], value='Light', label='Appearance', elem_id='theme-mode', scale=0, min_width=210)
         demo.load(fn=None, outputs=theme_mode, js=THEME_JS)
         theme_mode.change(fn=None, inputs=theme_mode, js=THEME_JS)
@@ -459,6 +498,7 @@ def build_app() -> gr.Blocks:
                     quiz_view = gr.HTML('A little practice goes a long way. Choose your focus, then create a quiz.')
                     radios = [gr.Radio(label=f'Q{i + 1}', visible=False, interactive=True) for i in range(MAX_QUESTIONS)]
                     quiz_id = gr.State('')
+                    quiz_counter = gr.State(0)
                     grade = gr.Button('Grade quiz', variant='primary')
                 with gr.Column(scale=1, min_width=220, elem_classes='dashboard-card', elem_id='quiz-evidence'):
                     gr.Markdown('### Review & evidence', elem_classes='panel-title')
@@ -492,10 +532,10 @@ def build_app() -> gr.Blocks:
         # flight so repeated clicks can never interleave two generations.
         create.click(
             reset_quiz_workspace,
-            outputs=[quiz_view, *radios, quiz_id, result, create],
+            outputs=[quiz_view, *radios, quiz_id, create, quiz_counter],
             show_progress='hidden', api_name=None).then(
-            generate_quiz_ui, [quiz_material, quiz_topic, quiz_n],
-            [quiz_view, *radios, quiz_id, create], api_name='create_quiz',
+            generate_quiz_ui, [quiz_material, quiz_topic, quiz_n, quiz_counter],
+            [quiz_view, *radios, quiz_id, create, quiz_counter, result], api_name='create_quiz',
             show_progress='hidden')
         grade.click(grade_quiz, [quiz_id, *radios], result, api_name='grade_quiz')
         library_outputs = [doc_dropdown, qa_material, quiz_material, overview, inventory]
@@ -507,7 +547,7 @@ def build_app() -> gr.Blocks:
 
 def main() -> None:
     build_app().queue(default_concurrency_limit=1).launch(
-        server_name='127.0.0.1', server_port=None, share=False,
+            server_name='127.0.0.1', server_port=7860, share=False,
         inbrowser='--no-browser' not in sys.argv, show_error=False,
         head=f'<style>{CSS}</style>', theme=gr.themes.Soft(primary_hue='blue'),
         footer_links=[], blocked_paths=[str(ROOT / '.env'), str(ROOT / '.git')])
