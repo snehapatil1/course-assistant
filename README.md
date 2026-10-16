@@ -104,7 +104,7 @@ result.
 
 ## Architecture
 
-![Product architecture](outputs/screenshots/architecture.png)
+![Product architecture](docs/architecture.svg)
 
 The app runs locally: the **Materials** tab ingests uploaded PDF/PPTX (dedupe
 → parse → render page/slide images → chunk → BM25 + text-vector +
