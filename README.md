@@ -102,6 +102,32 @@ this branch as of 2026-10-16: 114 passed, 4 skipped** — treat that as a
 dated snapshot, not a promise; run the command above to check the current
 result.
 
+## Using the app
+
+![Grounded Q&A answer with source evidence and original slide images](outputs/screenshots/qa_answered.png)
+
+Asking a question returns a grounded answer, a validation indicator, source
+citations with the document and page/slide number, and the original slide
+images used as visual evidence.
+
+![Quiz grading with score, explanation, cited slide, and supporting excerpt](outputs/screenshots/quiz-graded-3of3-quantization-score-evidence.png)
+
+Grading a quiz shows the score, an explanation for each question, the cited
+slide, and a supporting excerpt from the course material.
+
+**Getting started:**
+
+1. **Add materials** — in the **Materials** tab, upload PDF or PPTX course
+   files.
+2. **Ask a question** — in the **Q&A** tab, select specific materials or
+   leave the selection empty to search all uploaded materials. Optionally
+   enter a topic and adjust the reranker or slide-image settings, then ask
+   your question.
+3. **Take a quiz** — in the **Quiz** tab, select the materials, an optional
+   topic, and the number of questions; generate the quiz, answer the
+   questions, and submit it for grading. Review the score, explanations, and
+   cited evidence. Starting a new quiz clears the previous quiz state.
+
 ## Architecture
 
 ![Product architecture](docs/architecture.svg)
