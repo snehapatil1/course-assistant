@@ -61,14 +61,14 @@ _QUIZ_LOADING_HTML = """
 # rules travel with each generation - a stale tab always renders the same
 # compact layout. Scoped to #quiz-workspace so nothing leaks to other tabs.
 _QUIZ_LAYOUT_CSS = """
-#quiz-workspace {gap:10px!important;}
+#quiz-workspace {gap:10px!important;justify-content:flex-start!important;align-content:flex-start!important;}
 #quiz-workspace > .block.panel-title {padding:0!important;}
 #quiz-workspace > .block:nth-child(2) {margin-top:-10px!important;} /* title flush under the heading */
 #quiz-workspace > .block.panel-title :is(h1,h2,h3,h4) {margin:2px 0!important;}
 #quiz-workspace .quiz-headline {margin:0 0 2px 0!important;font-size:17px;line-height:1.35;}
 #quiz-workspace .quiz-sub {margin:0 0 2px 0!important;font-size:13px;color:#64748b;}
 #quiz-workspace .prose {margin:0!important;}
-#quiz-workspace .block {margin:0!important;padding-top:4px!important;}
+#quiz-workspace .block {margin:0!important;padding-top:4px!important;flex:0 1 auto!important;height:auto!important;}
 #quiz-workspace .form fieldset {padding:2px 0!important;}
 #quiz-workspace .block [data-testid="block-info"] {margin:0!important;padding:2px 0!important;line-height:1.35!important;}
 #quiz-workspace .form .wrap {padding-top:0!important;gap:2px!important;}
@@ -141,23 +141,18 @@ def refresh_docs() -> gr.Dropdown:
 # --------------------------------------------------------------------------- #
 # Q&A tab
 # --------------------------------------------------------------------------- #
-def _normalize_docs(value) -> list[str] | None:
-    """Normalize the Course materials selector to a clean doc list (or None).
+def _norm_docs(doc_id) -> list[str] | None:
+    """Normalize the materials selector: '', [], garbage -> None (all materials).
 
-    The Gradio multi-select can deliver ``None``, ``[]``, ``""``, or ``[""]``
-    for an empty selection; all of those must mean "all available materials".
+    An empty string must NOT become [''] - that docs filter matches nothing
+    and silently empties every retrieval leg.
     """
-    if value is None:
-        return None
-    if isinstance(value, str):
-        return [value] if value.strip() else None
-    if isinstance(value, (list, tuple)):
-        docs = [v for v in value if isinstance(v, str) and v.strip()]
-        return docs or None
-    return None
+    selected = [doc_id] if isinstance(doc_id, str) else (doc_id or [])
+    selected = [d for d in selected if isinstance(d, str) and d.strip()]
+    return selected or None
 
 
-def answer_qa(question: str, doc_id: str | list[str] | None, topic: str, rerank: bool,
+def answer_qa(question: str, doc_id: str, topic: str, rerank: bool,
               images_on: bool) -> tuple[str, list, gr.Dropdown]:
     if not question.strip():
         return "Ask a question first.", [], gr.update()
@@ -167,7 +162,7 @@ def answer_qa(question: str, doc_id: str | list[str] | None, topic: str, rerank:
     query = f"{topic}: {question}" if topic.strip() else question
     try:
         candidates = retrieve.retrieve(
-            query, docs=_normalize_docs(doc_id), use_rerank=rerank
+            query, docs=_norm_docs(doc_id), use_rerank=rerank
         )
     except Exception as exc:  # noqa: BLE001 - surface honest, readable errors
         import traceback
@@ -177,8 +172,8 @@ def answer_qa(question: str, doc_id: str | list[str] | None, topic: str, rerank:
                 f"(details in outputs/app.log). If the library is empty, add "
                 f"materials in the Materials tab first."), [], gr.update()
     if not candidates:
-        return ("No matching material found in the library for this question. "
-                "Try a different question or add more documents in the Materials tab."), [], gr.update()
+        return ("Cannot find course materials corresponding to this query. "
+                "Please add it in the Materials tab first."), [], gr.update()
 
     try:
         result = qa.answer_question(question, candidates, include_images=images_on)
@@ -418,6 +413,11 @@ def refresh_library_ui():
             library_overview(), library_inventory_html())
 
 
+def refresh_all():
+    """Refresh the library AND reset the upload area and status to defaults."""
+    return (gr.update(value=None), gr.update(value=''), *refresh_library_ui())
+
+
 def upload_dashboard(files):
     message, _ = on_upload(files)
     return message, *refresh_library_ui()
@@ -431,7 +431,7 @@ def remove_dashboard(doc_id):
 def build_app() -> gr.Blocks:
     with gr.Blocks(title='Course Assistant', analytics_enabled=False) as demo:
         with gr.Row(elem_id='topbar'):
-            gr.HTML('<div class="brand"><span class="brand-mark" aria-hidden="true">⌁</span><div>Course Assistant<small>MBAX 6418 · STUDY WORKSPACE</small></div></div>')
+            gr.HTML('<div class="brand"><span class="brand-mark" aria-hidden="true">⌁</span><div>Course Assistant<small>STUDY WORKSPACE</small></div></div>')
             theme_mode = gr.Radio(['Light', 'Dark'], value='Light', label='Appearance', elem_id='theme-mode', scale=0, min_width=210)
         demo.load(fn=None, outputs=theme_mode, js=THEME_JS)
         theme_mode.change(fn=None, inputs=theme_mode, js=THEME_JS)
@@ -517,7 +517,8 @@ def build_app() -> gr.Blocks:
         library_outputs = [doc_dropdown, qa_material, quiz_material, overview, inventory]
         save.click(upload_dashboard, upload, [status, *library_outputs], api_name='save_materials')
         remove.click(remove_dashboard, doc_dropdown, [status, *library_outputs], api_name='remove_material')
-        refresh.click(refresh_library_ui, outputs=library_outputs, api_name='refresh_library')
+        refresh.click(refresh_all, outputs=[upload, status, *library_outputs],
+                      api_name='refresh_library')
     return demo
 
 

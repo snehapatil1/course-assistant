@@ -32,39 +32,15 @@ def test_answer_dashboard_keeps_master_retrieval_and_separates_evidence(monkeypa
     assert images == []
 
 
-def test_answer_qa_empty_selection_means_all_materials(monkeypatch):
-    """None / [] / "" / [""] must all mean "all available materials" and never
-    surface a reranker HTTP error; zero candidates must produce the honest
-    no-evidence message."""
-    calls = []
-    monkeypatch.setattr(app.retrieve, 'endpoint_ready', lambda _: True)
-
-    def retrieve(query, **kwargs):
-        calls.append(kwargs)
-        return []
-
-    monkeypatch.setattr(app.retrieve, 'retrieve', retrieve)
-
-    for empty in (None, [], "", [""]):
-        answer, images, _ = app.answer_qa('Why?', empty, '', True, True)
-        assert calls[-1]['docs'] is None
-        assert images == []
-        assert 'No matching material found' in answer
-        assert 'Something went wrong' not in answer
-
-    # a selected document is passed through as a clean list
-    answer, _, _ = app.answer_qa('Why?', 'doc', '', True, True)
-    assert calls[-1]['docs'] == ['doc']
-
-
 def test_answer_qa_zero_candidates_is_honest_not_http_error(monkeypatch):
     """When retrieval genuinely returns nothing, the app says so plainly and
     does not expose a raw HTTP error."""
     monkeypatch.setattr(app.retrieve, 'endpoint_ready', lambda _: True)
     monkeypatch.setattr(app.retrieve, 'retrieve', lambda *a, **k: [])
     answer, images, _ = app.answer_qa('What is LoRA?', None, '', True, True)
-    assert 'No matching material found' in answer
+    assert 'Cannot find course materials' in answer
     assert 'HTTP' not in answer
+    assert 'Something went wrong' not in answer
     assert images == []
 
 def test_empty_library_quiz_is_readable_not_file_error(tmp_path, monkeypatch):
@@ -115,7 +91,7 @@ def test_real_client_master_upload_dedupe_remove_and_quiz(tmp_path, monkeypatch,
         graded = client.predict('B', None, None, None, None, api_name='/grade_quiz')
         assert 'Score: 1 / 1' in graded and 'PRIVATE-FIXTURE' in graded
         removed = client.predict(doc_id, api_name='/remove_material')
-        assert 'purged' in removed[0]
+        assert 'Removed' in removed[0]
         assert '<tr data-doc-id=' not in removed[5]
         assert '<tr data-doc-id=' not in client.predict(api_name='/refresh_library')[-1]
         assert listing(out) == [] and not list(library_dir.glob('*.pdf'))
@@ -129,3 +105,30 @@ def test_dashboard_reports_real_unconfigured_status():
     answer, sources, images = app.answer_dashboard('Why?', '', '', True, True)
     assert 'not configured' in answer
     assert images == []
+
+
+def test_empty_material_selection_must_not_filter_all_chunks(monkeypatch):
+    """doc_id '' / [] must be treated as 'all materials' - the old code turned
+    '' into [''], which the docs filter applied to every leg, so EVERY question
+    returned 'Cannot find course materials corresponding to this query'."""
+    from src import app, qa
+    from src.retrieve import Candidate
+
+    captured = {}
+
+    def fake_retrieve(query, docs, use_rerank):
+        captured["docs"] = docs
+        return [Candidate(chunk_id="x__p0001__c0001", doc="x", doc_title="X",
+                          kind="slide", page_no=1, text="quantization reduces size",
+                          image_path="outputs/pages/x__p0001.png")]
+
+    monkeypatch.setattr(app.retrieve, "retrieve", fake_retrieve)
+    monkeypatch.setattr(app.retrieve, "endpoint_ready", lambda _: True)
+    monkeypatch.setattr(qa, "answer_question",
+                        lambda *a, **k: {"answer": "quantization reduces size",
+                                         "sources": [], "valid": True,
+                                         "validation_errors": []})
+    for empty in ("", [], [""]):
+        text, _, _ = app.answer_qa("What is quantization?", empty, "", True, True)
+        assert "Cannot find course materials" not in text, f"docs={empty!r} failed"
+        assert captured["docs"] is None

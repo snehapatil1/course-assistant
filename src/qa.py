@@ -353,6 +353,17 @@ def answer_question(question: str, candidates: list,
             "model returned an empty response on every fallback rung "
             "(budget + images stripped); please retry the question "
             "(or ask a shorter one)", ladder)
+    if is_not_found(raw):  # model refused WITHOUT wrapping in JSON: canonicalize
+        return {
+            "answer": NOT_FOUND_MARKER,
+            "sources": [],
+            "raw": raw,
+            "valid": True,
+            "validation_errors": [],
+            "ladder": ladder,
+            "images_sent": count_images(messages) if not ladder["images_stripped"] else 0,
+            "temperature_used": temperature if temperature is not None else config.LLM_TEMPERATURE,
+        }
     obj = parse_json_response(raw)
     valid, errors = validate_answer(obj, candidates)
     sources = obj.get("sources", []) if isinstance(obj, dict) else []

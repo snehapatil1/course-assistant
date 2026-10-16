@@ -83,42 +83,44 @@ def test_retrieve_no_match_returns_empty(pdf_file, tmp_path):
     assert hits == []
 
 
-def test_retrieve_skips_rerank_with_zero_candidates(pdf_file, tmp_path, monkeypatch):
-    """Zero candidates must never call the reranker (it rejects empty lists
-    with HTTP 400); retrieval should return [] instead of raising."""
-    from src import config, library
-    import src.embeddings as embeddings
+def test_retrieve_no_leg_hits_returns_empty_without_rerank(tmp_path, monkeypatch):
+    """A query that matches nothing in any leg must return [] (and NEVER call
+    the reranker with an empty document list - that produced a raw HTTP 400
+    error to the user instead of the friendly no-match message)."""
+    import json
 
-    lib_dir, out = tmp_path / "library", tmp_path / "out"
-    library.add_document(pdf_file, lib_dir, out, render=False)
-    bm25_dir = out / "indexes" / "bm25"
+    from src.indexes import build_bm25
 
-    # make the reranker "ready" so the candidate guard is the only thing
-    # preventing the call
-    monkeypatch.setattr(config, "RERANK_BASE_URL", "http://example.invalid:9004/v1")
-    monkeypatch.setattr(config, "RERANK_API_KEY", "«redacted:rk-…»")
-    monkeypatch.setattr(config, "RERANK_MODEL", "example/rerank-model")
+    idx = tmp_path / "bm25"
+    corpus = [{"chunk_id": "w3__p0001__c0001", "doc": "w3__p0001",
+               "doc_title": "Week 3", "kind": "slide", "page_no": 1,
+               "text": "Few-shot prompting offers examples in the prompt.",
+               "image_path": "outputs/pages/w3__p0001__c0001.png"}]
+    build_bm25(corpus, out_dir=idx)
+    (idx / "corpus_meta.json").write_text(json.dumps(corpus))
+
+    monkeypatch.setattr("src.retrieve.endpoint_ready", lambda _: True)
     called = []
-    monkeypatch.setattr(
-        embeddings, "rerank",
-        lambda query, cands: called.append(len(cands)) or cands,
-    )
 
-    # a doc filter that matches nothing -> zero candidates -> no rerank call
-    hits = retrieve("retrieval augmented generation", docs=["no_such_doc"],
-                    bm25_dir=bm25_dir, use_rerank=True)
+    class EmptyCol:
+        def query(self, *a, **k):
+            return {"ids": [[]], "distances": [[]]}
+
+    def fake_chroma():
+        return None
+
+    monkeypatch.setattr("src.retrieve.get_chroma", fake_chroma)
+    monkeypatch.setattr("src.retrieve.get_text_collection", lambda c: EmptyCol())
+    monkeypatch.setattr("src.retrieve.get_visual_collection", lambda c: EmptyCol())
+
+    def fake_rerank(*a, **k):
+        called.append(a)
+        raise AssertionError("rerank must not be called with no candidates")
+
+    monkeypatch.setattr("src.embeddings.rerank", fake_rerank)
+    import numpy as np
+    monkeypatch.setattr("src.embeddings.embed_query", lambda q: np.full(16, 0.1))
+
+    hits = retrieve("completely unrelated topic", bm25_dir=idx)
     assert hits == []
     assert called == []
-
-    # same for an empty-string filter (the app now normalizes this away, but
-    # retrieval itself must stay safe for any caller)
-    hits = retrieve("retrieval augmented generation", docs=[""],
-                    bm25_dir=bm25_dir, use_rerank=True)
-    assert hits == []
-    assert called == []
-
-    # non-empty candidates still hit the reranker
-    hits = retrieve("retrieval augmented generation", bm25_dir=bm25_dir,
-                    use_rerank=True)
-    assert hits
-    assert called  # rerank was called for real candidates

@@ -128,6 +128,8 @@ def retrieve(
         batches["visual"] = _page_ids_to_chunk_ids(vis_hits["ids"][0])
 
     fused = compute_rrf(list(batches.values()), k=RRF_K)
+    if not fused:
+        return []  # nothing matched in ANY leg: no candidates, no rerank call
     ordered = sorted(fused.items(), key=lambda kv: kv[1], reverse=True)[:k_fused]
     chunks_by_id = {c["chunk_id"]: c for c in corpus}
     candidates = [
@@ -148,9 +150,13 @@ def retrieve(
     if use_rerank and candidates and endpoint_ready("rerank"):
         from src.embeddings import rerank
 
-        candidates = rerank(query, [c.__dict__ for c in candidates])
-        candidates = [Candidate(**c) for c in candidates]
-        candidates.sort(key=lambda c: c.rerank_score, reverse=True)
+        try:
+            reranked = rerank(query, [c.__dict__ for c in candidates])
+            candidates = [Candidate(**c) for c in reranked]
+            candidates.sort(key=lambda c: c.rerank_score, reverse=True)
+        except Exception:  # noqa: BLE001 - the reranker is an enhancement;
+            # a reranker outage must not break Q&A: fall back to fused order
+            candidates.sort(key=lambda c: -c.scores.get("rrf", 0.0))
 
     return candidates[:k_final]
 
