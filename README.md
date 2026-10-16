@@ -33,6 +33,15 @@ For detailed dashboard instructions, see [README-DASHBOARD.md](README-DASHBOARD.
 
 ### Manual setup (macOS/Linux)
 
+First, navigate into your cloned repository (`/path/to/course-assistant` is a
+placeholder — replace it with the actual location of your clone):
+
+```bash
+cd /path/to/course-assistant
+```
+
+Then install and launch from inside that directory:
+
 ```bash
 uv venv --python 3.11 .venv
 uv pip install --python .venv/bin/python -r requirements-dashboard.txt
@@ -89,7 +98,7 @@ never shown in the UI, logs, errors, screenshots, docs, tests, or GitHub.
 The suite is hermetic: it uses synthetic documents (no course files) and
 runs with every class endpoint switched off unless a test deliberately
 switches one on, so it needs no `.env` and no network. **Verified result on
-this branch as of 2026-10-12: 112 passed, 4 skipped** — treat that as a
+this branch as of 2026-10-16: 114 passed, 4 skipped** — treat that as a
 dated snapshot, not a promise; run the command above to check the current
 result.
 
@@ -162,8 +171,8 @@ documents; results should be re-checked as the library grows. To reproduce:
 `.env` with class endpoints, `python -m src.library add <files>`, then
 `TOP_K_FINAL=8 python -m src.eval_qa` and
 `TOP_K_FINAL=8 python -m src.eval_qa --compare-rerank`. Test suite at the
-time of writing (baseline 2026-10-12, see "Running the tests" above):
-**112 passed, 4 skipped** — rerun `.venv/bin/python -m pytest -q` for the
+time of writing (baseline 2026-10-16, see "Running the tests" above):
+**114 passed, 4 skipped** — rerun `.venv/bin/python -m pytest -q` for the
 current status.
 
 ---
