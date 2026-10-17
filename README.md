@@ -1,4 +1,4 @@
-# course-assistant
+# Course Assistant
 
 MBAX 6418: Business Generative AI and LLM Course Assistant
 
@@ -9,11 +9,11 @@ Gradio) and the class services on `dobolyi.com:9001+`. No course file is
 hardcoded anywhere; the corpus is whatever the user adds in the app.
 
 > Setup, usage, evaluation findings, and limitations are documented below.
-> See `PROGRESS.md` for the step-by-step build log.
+> See [PROGRESS.md](PROGRESS.md) for the step-by-step build log.
 
 ## Default interface: Mountain Master
 
-**Mountain Master is the main interface on the Meaghan branch**, combining the mountain dashboard design with the course backend. It includes **Q&A**, **Practice Quiz**, **Course Materials**, and a persistent **Light / Dark** appearance control. The interface displays the design label **Mountain v2**.
+**Mountain Master is the app's main interface**, combining the mountain dashboard design with the course backend. It includes **Q&A**, **Practice Quiz**, **Course Materials**, and a persistent **Light / Dark** appearance control. The interface displays the design label **Mountain v2**.
 
 ### Open on Windows
 
@@ -98,7 +98,7 @@ never shown in the UI, logs, errors, screenshots, docs, tests, or GitHub.
 The suite is hermetic: it uses synthetic documents (no course files) and
 runs with every class endpoint switched off unless a test deliberately
 switches one on, so it needs no `.env` and no network. **Verified result on
-this branch as of 2026-10-16: 114 passed, 4 skipped** — treat that as a
+this branch as of 2026-10-16: 115 passed, 4 skipped** — treat that as a
 dated snapshot, not a promise; run the command above to check the current
 result.
 
@@ -140,17 +140,16 @@ reranks, and answers with a vision LLM as structured `{answer, sources}`
 (schema- and support-validated), showing the original slide images with
 document + slide number; the **Quiz** tab generates MCQs from the selected
 uploaded material with a fixed server-side answer key, scores, and
-source-cited explanations. Interactive diagram: `docs/architecture.html`.
-
-## Credentials
-
-Real keys live only in the local, gitignored `.env` (dummy values in
-`.env.example`). They are never shown in the UI, logs, errors, screenshots,
-docs, or on GitHub.
+source-cited explanations. Interactive diagram: [docs/architecture.html](docs/architecture.html).
 
 ---
 
-## Grounded QA — evaluation findings (Savannah's task, 2026-10-08)
+## Evaluation and findings
+
+The first subsection records an earlier grounded-QA baseline from 2026-10-08;
+the second reports the final controlled Q&A reranking comparison.
+
+### Preliminary grounded Q&A evaluation (2026-10-08)
 
 **What was tested:** the Q&A pipeline on a real corpus (Week 2 deck — 42
 slides, Week 6 deck — 20 slides, Syllabus — 7 pages; all with rendered slide
@@ -158,7 +157,7 @@ images) against the live class services (chat `9001`, text embeddings `9002`,
 reranker `9004`; visual embeddings `9003` was down during the run). A fixed
 10-question set was answered at **temperature 0**, evidence budget 8
 (`TOP_K_FINAL=8`), and every response was validated for schema + source
-support. Full results: `outputs/findings/grounded_qa_eval_live_k8_20261008.json`.
+support. Full results: [outputs/findings/grounded_qa_eval_live_k8_20261008.json](outputs/findings/grounded_qa_eval_live_k8_20261008.json).
 
 | # | Question | Outcome | Source / note |
 |---|---|---|---|
@@ -184,10 +183,10 @@ sends a larger output budget, so this class of failure is mitigated.
 **Design comparison (rerank ON vs OFF):** the same 10 questions, same
 temperature, on the same corpus. Both configurations scored **10/10 valid**;
 rerank ON averaged **8.9 s/question** vs **6.96 s offline**. Reranking did
-not change correctness at this corpus size, but it re-orders low-quality
-candidates ahead of better ones in larger libraries and costs under 2 s on
-average — recommendation: **keep reranking ON**. Full per-question record:
-`outputs/findings/grounded_qa_compare_rerank_latest.json`.
+not change correctness at this corpus size, but it can move stronger
+candidates ahead of lower-quality ones in larger libraries and costs under
+2 s on average — recommendation: **keep reranking ON**. Full per-question
+record: [outputs/findings/grounded_qa_compare_rerank_latest.json](outputs/findings/grounded_qa_compare_rerank_latest.json).
 
 **Honest limitations:** the visual-embedding endpoint (9003) was unreachable
 throughout the run, so the visual-*vector* retrieval leg is untested live
@@ -198,12 +197,12 @@ documents; results should be re-checked as the library grows. To reproduce:
 `TOP_K_FINAL=8 python -m src.eval_qa` and
 `TOP_K_FINAL=8 python -m src.eval_qa --compare-rerank`. Test suite at the
 time of writing (baseline 2026-10-16, see "Running the tests" above):
-**114 passed, 4 skipped** — rerun `.venv/bin/python -m pytest -q` for the
+**115 passed, 4 skipped** — rerun `.venv/bin/python -m pytest -q` for the
 current status.
 
 ---
 
-## Q&A reranking evaluation
+### Final controlled Q&A reranking evaluation
 
 A controlled Q&A evaluation used the Week 2, Week 3, and Week 5 decks plus the syllabus. The same ten questions were tested with reranking ON and OFF to compare answer correctness, source support, visual retrieval, and response time. Automated runs recorded the answers, retrieved evidence, validation results, and timing; manual review checked answer correctness, visual evidence, and UI behavior. This evaluation builds on the earlier grounded-QA testing above by using the final four-document test set and working visual embeddings.
 
@@ -249,8 +248,8 @@ or zoomed; extra gallery images are not clearly tied to cited sources; Q7
 did not display slide 22, while Q8 displayed slide 33 and Q9 displayed slide
 18 in both conditions.
 
-**Full record:** `outputs/findings/evaluation_plan.md` (completed evaluation
+**Full record:** [outputs/findings/evaluation_plan.md](outputs/findings/evaluation_plan.md) (completed evaluation
 record with the frozen question set, rubric, results table, and
 interpretation). Raw automated results:
-`outputs/findings/maddie_rerank_comparison_20261010-194347.json` and
-`outputs/findings/maddie_rerank_comparison_latest.json`.
+[outputs/findings/maddie_rerank_comparison_20261010-194347.json](outputs/findings/maddie_rerank_comparison_20261010-194347.json) and
+[outputs/findings/maddie_rerank_comparison_latest.json](outputs/findings/maddie_rerank_comparison_latest.json).
