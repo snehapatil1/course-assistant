@@ -441,7 +441,7 @@ def build_app() -> gr.Blocks:
             with gr.Row(elem_classes='workspace'):
                 with gr.Column(scale=1, min_width=220, elem_classes='sidebar', elem_id='qa-filters'):
                     gr.Markdown('### Study focus', elem_classes='panel-title')
-                    qa_material = gr.Dropdown(choices=_qa_quiz_choices(), value=[], multiselect=True, info='Empty selection = All available materials. Select multiple to narrow scope.', label='Course materials', interactive=True)
+                    qa_material = gr.Dropdown(choices=_qa_quiz_choices(), value=[], multiselect=True, info='Empty selection = All available materials. Select multiple to narrow scope.', label='Course materials', interactive=True, elem_id='qa-material-dropdown')
                     qa_topic = gr.Textbox(label='Topic (optional)', placeholder='e.g. quantization')
                     qa_rerank = gr.Checkbox(label='Use reranker', value=True)
                     qa_images = gr.Checkbox(label='Send slide images to the model', value=True)
@@ -522,11 +522,35 @@ def build_app() -> gr.Blocks:
     return demo
 
 
+# The Q&A Course materials multiselect's chevron is a decorative SVG (Gradio's
+# .dropdown-arrow) with no click handler of its own, so clicking it does nothing.
+# Wire it to the dropdown's accessible combobox with event delegation: the
+# listener lives on document (survives Gradio rerenders) and only ever fires for
+# clicks on the arrow inside #qa-material-dropdown.
+QA_ARROW_FORWARD_JS = """(() => {
+  if (window.__caQaArrowForwardInstalled) return;
+  window.__caQaArrowForwardInstalled = true;
+  document.addEventListener('click', (event) => {
+    const arrow = event.target && event.target.closest
+      ? event.target.closest('#qa-material-dropdown .dropdown-arrow')
+      : null;
+    if (!arrow) return;
+    const wrap = arrow.closest('.wrap');
+    const combo = wrap && wrap.querySelector('[role="combobox"]');
+    if (!combo) return;
+    event.preventDefault();
+    combo.focus();
+    combo.click();
+  }, true);
+})()"""
+
+
 def main() -> None:
     build_app().queue(default_concurrency_limit=1).launch(
         server_name='127.0.0.1', server_port=None, share=False,
         inbrowser='--no-browser' not in sys.argv, show_error=False,
-        head=f'<style>{CSS}</style>', theme=gr.themes.Soft(primary_hue='blue'),
+        head=f'<style>{CSS}</style><script>{QA_ARROW_FORWARD_JS}</script>',
+        theme=gr.themes.Soft(primary_hue='blue'),
         footer_links=[], blocked_paths=[str(ROOT / '.env'), str(ROOT / '.git')])
 
 
