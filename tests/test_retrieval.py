@@ -124,3 +124,54 @@ def test_retrieve_no_leg_hits_returns_empty_without_rerank(tmp_path, monkeypatch
     hits = retrieve("completely unrelated topic", bm25_dir=idx)
     assert hits == []
     assert called == []
+
+
+def test_visual_mapping_uses_corpus_not_repo_chunks_json(tmp_path, monkeypatch):
+    """The visual page->chunk mapping must use the loaded BM25 corpus, NOT a
+    generated repo-level outputs/chunks.json file (a fresh clone has no such
+    file). A visual hit must still surface its chunk when the file is absent."""
+    import json
+    import numpy as np
+
+    from src.indexes import build_bm25
+
+    idx = tmp_path / "bm25"
+    corpus = [{"chunk_id": "w3__p0001__c0001", "doc": "w3__p0001",
+               "doc_title": "Week 3", "kind": "slide", "page_no": 1,
+               "chunk_of": "w3__p0001",
+               "text": "Few-shot prompting offers examples in the prompt.",
+               "image_path": "outputs/pages/w3__p0001__c0001.png"}]
+    build_bm25(corpus, out_dir=idx)
+    (idx / "corpus_meta.json").write_text(json.dumps(corpus))
+
+    # Prove the repo-level generated file is not needed: point the module at a
+    # tree with no outputs/chunks.json. The old implementation read that file
+    # and raised FileNotFoundError on a fresh clone.
+    clean_repo = tmp_path / "fresh_clone"
+    (clean_repo / "outputs").mkdir(parents=True)
+    assert not (clean_repo / "outputs" / "chunks.json").exists()
+    monkeypatch.setattr("src.retrieve.PROJECT_ROOT", clean_repo)
+    monkeypatch.setattr("src.retrieve.endpoint_ready", lambda _: True)
+
+    def fake_chroma():
+        return None
+
+    monkeypatch.setattr("src.retrieve.get_chroma", fake_chroma)
+
+    class EmptyTextCol:
+        def query(self, *a, **k):
+            return {"ids": [[]], "distances": [[]]}
+
+    class VisualCol:
+        def query(self, *a, **k):
+            return {"ids": [["w3__p0001"]], "distances": [[0.1]]}
+
+    monkeypatch.setattr("src.retrieve.get_text_collection", lambda c: EmptyTextCol())
+    monkeypatch.setattr("src.retrieve.get_visual_collection", lambda c: VisualCol())
+    monkeypatch.setattr("src.embeddings.embed_query", lambda q: np.full(16, 0.1))
+
+    # use_rerank=False keeps this focused on retrieval, no endpoint calls
+    hits = retrieve("zzz completely unrelated keyword", bm25_dir=idx, use_rerank=False)
+    assert len(hits) == 1
+    assert hits[0].chunk_id == "w3__p0001__c0001"
+    assert hits[0].doc == "w3__p0001"

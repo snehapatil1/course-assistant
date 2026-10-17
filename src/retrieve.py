@@ -9,7 +9,6 @@ original image path.
 """
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -125,7 +124,7 @@ def retrieve(
         if docs:
             spec["where"] = {"doc": {"$in": docs}}
         vis_hits = vis_col.query(**spec)
-        batches["visual"] = _page_ids_to_chunk_ids(vis_hits["ids"][0])
+        batches["visual"] = _page_ids_to_chunk_ids(vis_hits["ids"][0], corpus)
 
     fused = compute_rrf(list(batches.values()), k=RRF_K)
     if not fused:
@@ -161,12 +160,13 @@ def retrieve(
     return candidates[:k_final]
 
 
-def _page_ids_to_chunk_ids(page_ids: list[str]) -> list[str]:
-    """Map visual page hits to their chunks (a slide page == its chunk)."""
-    chunks = json.loads((PROJECT_ROOT / "outputs" / "chunks.json").read_text(encoding="utf-8"))
+def _page_ids_to_chunk_ids(page_ids: list[str], corpus: list[dict]) -> list[str]:
+    """Map visual page hits to their chunks (a slide page == its chunk).
+
+    Uses the already-loaded BM25 chunk corpus (which carries the full chunk
+    metadata, including ``chunk_of``) instead of reading a generated JSON file
+    from the repo - a fresh clone has no such file, and the loaded corpus is
+    guaranteed to be in sync with the visual pages index.
+    """
     page_set = set(page_ids)
-    out: list[str] = []
-    for c in chunks:
-        if c.get("chunk_of") in page_set:
-            out.append(c["chunk_id"])
-    return out
+    return [c["chunk_id"] for c in corpus if c.get("chunk_of") in page_set]
