@@ -99,6 +99,24 @@ def test_bm25_text_queries(pdf_file, tmp_path):
     assert hits and hits[0]["doc"] == add["doc_id"]
 
 
+def test_clean_library_starts_empty_and_creates_state_files(pdf_file, tmp_path):
+    """A fresh clone (no manifest/chunks committed) must start empty and
+    create its state files normally on first add."""
+    lib_dir, out = _dirs(tmp_path)
+    # no generated-library state exists yet
+    assert not (out / "manifest.json").exists()
+    assert not (out / "chunks.json").exists()
+    assert library.list_documents(out) == []
+
+    # adding a document creates manifest.json + chunks.json automatically
+    r = library.add_document(pdf_file, lib_dir, out, render=False)
+    assert r["status"] == "added"
+    assert (out / "manifest.json").is_file()
+    assert (out / "chunks.json").is_file()
+    assert len(_manifest(out)) == 2
+    assert len(library.list_documents(out)) == 1
+
+
 def test_list_documents_metadata(pdf_file, pptx_file, tmp_path):
     lib_dir, out = _dirs(tmp_path)
     library.add_document(pdf_file, lib_dir, out, render=False)

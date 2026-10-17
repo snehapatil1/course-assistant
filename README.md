@@ -1,4 +1,4 @@
-# course-assistant
+# Course Assistant
 
 MBAX 6418: Business Generative AI and LLM Course Assistant
 
@@ -8,12 +8,12 @@ evidence, and generate practice quizzes — built with Python (bm25s, ChromaDB,
 Gradio) and the class services on `dobolyi.com:9001+`. No course file is
 hardcoded anywhere; the corpus is whatever the user adds in the app.
 
-> Detailed setup, usage, findings, and limitations follow below (in progress).
-> See `PROGRESS.md` for the step-by-step build log.
+> Setup, usage, evaluation findings, and limitations are documented below.
+> See [PROGRESS.md](PROGRESS.md) for the step-by-step build log.
 
 ## Default interface: Mountain Master
 
-**Mountain Master is the main interface on the Meaghan branch**, combining the mountain dashboard design with the course backend. It includes **Q&A**, **Practice Quiz**, **Course Materials**, and a persistent **Light / Dark** appearance control. The interface displays the design label **Mountain v2**.
+**Mountain Master is the app's main interface**, combining the mountain dashboard design with the course backend. It includes **Q&A**, **Practice Quiz**, **Course Materials**, and a persistent **Light / Dark** appearance control. The interface displays the design label **Mountain v2**.
 
 ### Open on Windows
 
@@ -33,6 +33,15 @@ For detailed dashboard instructions, see [README-DASHBOARD.md](README-DASHBOARD.
 
 ### Manual setup (macOS/Linux)
 
+First, navigate into your cloned repository (`/path/to/course-assistant` is a
+placeholder — replace it with the actual location of your clone):
+
+```bash
+cd /path/to/course-assistant
+```
+
+Then install and launch from inside that directory:
+
 ```bash
 uv venv --python 3.11 .venv
 uv pip install --python .venv/bin/python -r requirements-dashboard.txt
@@ -43,19 +52,85 @@ cp .env.example .env          # only if .env does not already exist; configure l
 On Windows, use `.venv\Scripts\python.exe` instead of `.venv/bin/python`. All launch methods use `src.app`; the older standalone dashboard modules are not alternate entry points.
 
 **Materials management (works with zero configuration):** in the app's
-Materials tab, upload PDF/PPTX files. The same file uploaded twice is a no-op
-(content-hash dedupe); removing a document purges its text, images, and index
-entries. PPTX files are converted with LibreOffice (install:
-`brew install --cask libreoffice`; without it, export the deck to PDF and
-upload that). See `data/library/README.md` for formats and conversion steps.
+Materials tab, upload **PDF** or **PPTX** files (these are the two supported
+formats; other file types are rejected with a clear message). The same file
+uploaded twice is a no-op (content-hash dedupe); removing a document purges
+its text, images, and index entries. **PPTX files are converted to PDF with
+LibreOffice** (install: `brew install --cask libreoffice`; without it,
+export the deck to PDF yourself and upload that instead). PDF parsing and
+PPTX→PDF conversion run locally; no class endpoint is required for uploads.
 
 **Q&A and Quiz tabs activate once `.env` has the class endpoints** (vision
 chat LLM, text/visual embeddings, multimodal reranker — `dobolyi.com:9001+`).
 Until then the app clearly reports which services are missing.
 
+### Configuring the class endpoints
+
+The `.env` file maps one variable set per service. The class endpoints file
+provided by the course staff lists, for each port, a base URL, an API key,
+and a model name. Map them like this (values shown are dummy examples — put
+your real values in `.env`, never in this README or any committed file):
+
+| Endpoint port | `.env` variables |
+|---|---|
+| `9001` — vision chat LLM | `CHAT_BASE_URL`, `CHAT_API_KEY`, `CHAT_MODEL` |
+| `9002` — text embeddings | `TEXT_EMBED_BASE_URL`, `TEXT_EMBED_API_KEY`, `TEXT_EMBED_MODEL` |
+| `9003` — visual embeddings | `VISUAL_EMBED_BASE_URL`, `VISUAL_EMBED_API_KEY`, `VISUAL_EMBED_MODEL` |
+| `9004` — multimodal reranker | `RERANK_BASE_URL`, `RERANK_API_KEY`, `RERANK_MODEL` |
+
+**Every base URL must include the `/v1` path.** The class endpoints file
+omits `/v1` on some ports (notably 9002 and 9004); the app calls
+`<base>/models`, `<base>/embeddings`, and `<base>/rerank` and gets HTTP 404
+without the `/v1` prefix. So `http://dobolyi.com:9002/embeddings` will fail;
+use `http://dobolyi.com:9002/v1/embeddings`. `CHAT_BASE_URL` should also end
+in `/v1` (e.g. `http://dobolyi.com:9001/v1`). `.env.example` already shows
+the correct `/v1` form for every service.
+
+API keys are stored locally in `.env` only (chmod 600, gitignored) and are
+never shown in the UI, logs, errors, screenshots, docs, tests, or GitHub.
+
+### Running the tests
+
+```bash
+.venv/bin/python -m pytest -q
+```
+
+The suite is hermetic: it uses synthetic documents (no course files) and
+runs with every class endpoint switched off unless a test deliberately
+switches one on, so it needs no `.env` and no network. **Verified result on
+this branch as of 2026-10-16: 115 passed, 4 skipped** — treat that as a
+dated snapshot, not a promise; run the command above to check the current
+result.
+
+## Using the app
+
+![Grounded Q&A answer with source evidence and original slide images](outputs/screenshots/qa_answered.png)
+
+Asking a question returns a grounded answer, a validation indicator, source
+citations with the document and page/slide number, and the original slide
+images used as visual evidence.
+
+![Quiz grading with score, explanation, cited slide, and supporting excerpt](outputs/screenshots/quiz-graded-3of3-quantization-score-evidence.png)
+
+Grading a quiz shows the score, an explanation for each question, the cited
+slide, and a supporting excerpt from the course material.
+
+**Getting started:**
+
+1. **Add materials** — in the **Materials** tab, upload PDF or PPTX course
+   files.
+2. **Ask a question** — in the **Q&A** tab, select specific materials or
+   leave the selection empty to search all uploaded materials. Optionally
+   enter a topic and adjust the reranker or slide-image settings, then ask
+   your question.
+3. **Take a quiz** — in the **Quiz** tab, select the materials, an optional
+   topic, and the number of questions; generate the quiz, answer the
+   questions, and submit it for grading. Review the score, explanations, and
+   cited evidence. Starting a new quiz clears the previous quiz state.
+
 ## Architecture
 
-![Product architecture](outputs/screenshots/architecture.png)
+![Product architecture](docs/architecture.svg)
 
 The app runs locally: the **Materials** tab ingests uploaded PDF/PPTX (dedupe
 → parse → render page/slide images → chunk → BM25 + text-vector +
@@ -65,17 +140,16 @@ reranks, and answers with a vision LLM as structured `{answer, sources}`
 (schema- and support-validated), showing the original slide images with
 document + slide number; the **Quiz** tab generates MCQs from the selected
 uploaded material with a fixed server-side answer key, scores, and
-source-cited explanations. Interactive diagram: `docs/architecture.html`.
-
-## Credentials
-
-Real keys live only in the local, gitignored `.env` (dummy values in
-`.env.example`). They are never shown in the UI, logs, errors, screenshots,
-docs, or on GitHub.
+source-cited explanations. Interactive diagram: [docs/architecture.html](docs/architecture.html).
 
 ---
 
-## Grounded QA — evaluation findings (Savannah's task, 2026-10-08)
+## Evaluation and findings
+
+The first subsection records an earlier grounded-QA baseline from 2026-10-08;
+the second reports the final controlled Q&A reranking comparison.
+
+### Preliminary grounded Q&A evaluation (2026-10-08)
 
 **What was tested:** the Q&A pipeline on a real corpus (Week 2 deck — 42
 slides, Week 6 deck — 20 slides, Syllabus — 7 pages; all with rendered slide
@@ -83,7 +157,7 @@ images) against the live class services (chat `9001`, text embeddings `9002`,
 reranker `9004`; visual embeddings `9003` was down during the run). A fixed
 10-question set was answered at **temperature 0**, evidence budget 8
 (`TOP_K_FINAL=8`), and every response was validated for schema + source
-support. Full results: `outputs/findings/grounded_qa_eval_live_k8_20261008.json`.
+support. Full results: [outputs/findings/grounded_qa_eval_live_k8_20261008.json](outputs/findings/grounded_qa_eval_live_k8_20261008.json).
 
 | # | Question | Outcome | Source / note |
 |---|---|---|---|
@@ -109,10 +183,10 @@ sends a larger output budget, so this class of failure is mitigated.
 **Design comparison (rerank ON vs OFF):** the same 10 questions, same
 temperature, on the same corpus. Both configurations scored **10/10 valid**;
 rerank ON averaged **8.9 s/question** vs **6.96 s offline**. Reranking did
-not change correctness at this corpus size, but it re-orders low-quality
-candidates ahead of better ones in larger libraries and costs under 2 s on
-average — recommendation: **keep reranking ON**. Full per-question record:
-`outputs/findings/grounded_qa_compare_rerank_latest.json`.
+not change correctness at this corpus size, but it can move stronger
+candidates ahead of lower-quality ones in larger libraries and costs under
+2 s on average — recommendation: **keep reranking ON**. Full per-question
+record: [outputs/findings/grounded_qa_compare_rerank_latest.json](outputs/findings/grounded_qa_compare_rerank_latest.json).
 
 **Honest limitations:** the visual-embedding endpoint (9003) was unreachable
 throughout the run, so the visual-*vector* retrieval leg is untested live
@@ -121,12 +195,14 @@ the vision model). One false negative (fine-tuning). Corpus here is 3 real
 documents; results should be re-checked as the library grows. To reproduce:
 `.env` with class endpoints, `python -m src.library add <files>`, then
 `TOP_K_FINAL=8 python -m src.eval_qa` and
-`TOP_K_FINAL=8 python -m src.eval_qa --compare-rerank`. Test suite: **94
-passed, 4 skipped**.
+`TOP_K_FINAL=8 python -m src.eval_qa --compare-rerank`. Test suite at the
+time of writing (baseline 2026-10-16, see "Running the tests" above):
+**115 passed, 4 skipped** — rerun `.venv/bin/python -m pytest -q` for the
+current status.
 
 ---
 
-## Q&A reranking evaluation
+### Final controlled Q&A reranking evaluation
 
 A controlled Q&A evaluation used the Week 2, Week 3, and Week 5 decks plus the syllabus. The same ten questions were tested with reranking ON and OFF to compare answer correctness, source support, visual retrieval, and response time. Automated runs recorded the answers, retrieved evidence, validation results, and timing; manual review checked answer correctness, visual evidence, and UI behavior. This evaluation builds on the earlier grounded-QA testing above by using the final four-document test set and working visual embeddings.
 
@@ -172,8 +248,8 @@ or zoomed; extra gallery images are not clearly tied to cited sources; Q7
 did not display slide 22, while Q8 displayed slide 33 and Q9 displayed slide
 18 in both conditions.
 
-**Full record:** `outputs/findings/evaluation_plan.md` (completed evaluation
+**Full record:** [outputs/findings/evaluation_plan.md](outputs/findings/evaluation_plan.md) (completed evaluation
 record with the frozen question set, rubric, results table, and
 interpretation). Raw automated results:
-`outputs/findings/maddie_rerank_comparison_20261010-194347.json` and
-`outputs/findings/maddie_rerank_comparison_latest.json`.
+[outputs/findings/maddie_rerank_comparison_20261010-194347.json](outputs/findings/maddie_rerank_comparison_20261010-194347.json) and
+[outputs/findings/maddie_rerank_comparison_latest.json](outputs/findings/maddie_rerank_comparison_latest.json).

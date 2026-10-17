@@ -32,6 +32,17 @@ def test_answer_dashboard_keeps_master_retrieval_and_separates_evidence(monkeypa
     assert images == []
 
 
+def test_answer_qa_zero_candidates_is_honest_not_http_error(monkeypatch):
+    """When retrieval genuinely returns nothing, the app says so plainly and
+    does not expose a raw HTTP error."""
+    monkeypatch.setattr(app.retrieve, 'endpoint_ready', lambda _: True)
+    monkeypatch.setattr(app.retrieve, 'retrieve', lambda *a, **k: [])
+    answer, images, _ = app.answer_qa('What is LoRA?', None, '', True, True)
+    assert 'Cannot find course materials' in answer
+    assert 'HTTP' not in answer
+    assert 'Something went wrong' not in answer
+    assert images == []
+
 def test_empty_library_quiz_is_readable_not_file_error(tmp_path, monkeypatch):
     monkeypatch.setattr(app.config, 'PROJECT_ROOT', tmp_path)
     monkeypatch.setattr(app.retrieve, 'endpoint_ready', lambda _: True)
